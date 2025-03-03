@@ -68,6 +68,9 @@ import java_cup.runtime.*;
   These declarations are regular expressions that will be used latter
   in the Lexical Rules Section.  
 */
+
+/* Truth can be false or true */
+Truth = false|true
    
 /* A line terminator is a \r (carriage return), \n (line feed), or
    \r\n. */
@@ -95,7 +98,7 @@ identifier = {letter}+
    This section contains regular expressions and actions, i.e. Java
    code, that will be executed when the scanner matches the associated
    regular expression. */
-   
+
 "if"               { return symbol(sym.IF); }
 "then"             { return symbol(sym.THEN); }
 "else"             { return symbol(sym.ELSE); }
@@ -116,6 +119,7 @@ identifier = {letter}+
 ")"                { return symbol(sym.RPAREN); }
 ";"                { return symbol(sym.SEMI); }
 {number}           { return symbol(sym.NUM, yytext()); }
+{Truth}            { return symbol(sym.TRUTH, yytext()); }
 {identifier}       { return symbol(sym.ID, yytext()); }
 {WhiteSpace}+      { /* skip whitespace */ }   
 "{"[^\}]*"}"       { /* skip comments */ }

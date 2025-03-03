@@ -10,6 +10,8 @@ public interface AbsynVisitor {
 
   public void visit( IntExp exp, int level );
 
+  public void visit( TruthExp exp, int level );
+
   public void visit( OpExp exp, int level );
 
   public void visit( ReadExp exp, int level );

@@ -73,7 +73,7 @@ parser code {:
    
 terminal IF, THEN, ELSE, END, REPEAT, UNTIL, READ, WRITE;
 terminal ASSIGN, EQ, LT, GT, PLUS, MINUS, TIMES, OVER, LPAREN, RPAREN, SEMI;
-terminal String ID, NUM;
+terminal String ID, NUM, TRUTH;
 terminal ERROR;
    
 non terminal Exp program1;
@@ -180,4 +180,6 @@ factor       ::= LPAREN exp:e RPAREN
                  {: RESULT = new IntExp(nleft, nright, n); :}
                | ID:i
                  {: RESULT = new VarExp(ileft, iright, i); :}
+               | TRUTH:t
+                 {: RESULT = new TruthExp(tleft, tright, t); :}
                ;

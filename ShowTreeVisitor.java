@@ -38,6 +38,11 @@ public class ShowTreeVisitor implements AbsynVisitor {
     System.out.println( "IntExp: " + exp.value ); 
   }
 
+  public void visit( TruthExp exp, int level ) {
+    indent( level );
+    System.out.println( "TruthExp: " + exp.value );
+  }
+
   public void visit( OpExp exp, int level ) {
     indent( level );
     System.out.print( "OpExp:" ); 
