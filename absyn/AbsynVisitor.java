@@ -4,6 +4,8 @@ public interface AbsynVisitor {
 
   public void visit( ExpList exp, int level );
 
+  public void visit( ArgList exp, int level );
+
   public void visit( AssignExp exp, int level );
 
   public void visit( IfExp exp, int level );

@@ -68,7 +68,6 @@ import java_cup.runtime.*;
   These declarations are regular expressions that will be used latter
   in the Lexical Rules Section.  
 */
-
 /* Truth can be false or true */
 Truth = false|true
    
@@ -118,6 +117,7 @@ identifier = {letter}+
 "("                { return symbol(sym.LPAREN); }
 ")"                { return symbol(sym.RPAREN); }
 ";"                { return symbol(sym.SEMI); }
+","                {return symbol(sym.COMMA); }
 {number}           { return symbol(sym.NUM, yytext()); }
 {Truth}            { return symbol(sym.TRUTH, yytext()); }
 {identifier}       { return symbol(sym.ID, yytext()); }

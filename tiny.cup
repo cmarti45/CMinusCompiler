@@ -72,14 +72,14 @@ parser code {:
 /* ------------Declaration of Terminals and Non Terminals Section----------- */
    
 terminal IF, THEN, ELSE, END, REPEAT, UNTIL, READ, WRITE;
-terminal ASSIGN, EQ, LT, GT, PLUS, MINUS, TIMES, OVER, LPAREN, RPAREN, SEMI;
+terminal ASSIGN, EQ, LT, GT, PLUS, MINUS, TIMES, OVER, LPAREN, RPAREN, SEMI, COMMA;
 terminal String ID, NUM, TRUTH;
 terminal ERROR;
    
 non terminal Exp program1;
-non terminal ExpList program, stmt_seq;
+non terminal ExpList program, stmt_seq, arg_list;
 non terminal Exp stmt, if_stmt, repeat_stmt, assign_stmt, read_stmt, write_stmt;
-non terminal Exp exp, simple_exp, term, signed_factor, factor;   
+non terminal Exp exp, simple_exp, term, signed_factor, factor;
 
 /* ----------------------------Grammar Section-------------------- */
    
@@ -182,4 +182,21 @@ factor       ::= LPAREN exp:e RPAREN
                  {: RESULT = new VarExp(ileft, iright, i); :}
                | TRUTH:t
                  {: RESULT = new TruthExp(tleft, tright, t); :}
+               | arg_list:a
+                 {: RESULT = a; :}
+               ;
+
+arg_list     ::= arg_list:a1 COMMA exp:e2
+                 {: ArgList t = a1;
+                    while( t.tail != null )
+                      t = t.tail;
+                    t.tail = new ArgList(e2, null);
+                    RESULT = a1;
+                 :}
+               | exp:e
+                 {: RESULT = new ArgList(e, null); :}
+               | error COMMA exp:e
+                 {: parser.report_error("invalid", null);
+                    RESULT = new ArgList(e, null);
+                 :}
                ;
