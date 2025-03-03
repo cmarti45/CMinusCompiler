@@ -122,7 +122,7 @@ stmt         ::= if_stmt:i
                ;
 
 if_stmt      ::= IF:i exp:e THEN stmt_seq:s END
-                 {: RESULT = new IfExp(ileft, iright, e, s, null); :}
+                 {: RESULT = new IfExp(ileft, iright, e, s, new ExpList(new NilExp(0,0), null)); :}
                | IF:i exp:e THEN stmt_seq:s1 ELSE stmt_seq:s2 END
                  {: RESULT = new IfExp(ileft, iright, e, s1, s2); :}
                ;
@@ -170,7 +170,7 @@ term         ::= term:t TIMES signed_factor:f
                ;
 
 signed_factor ::= MINUS:m signed_factor:f
-                  {: RESULT = new OpExp(mleft, mright, null, OpExp.UMINUS, f); :}
+                  {: RESULT = new OpExp(mleft, mright, new NilExp(0,0), OpExp.UMINUS, f); :}
                |  factor:f
                   {: RESULT = f; :}
                ;
@@ -193,7 +193,9 @@ call         ::= ID:i1 LPAREN args:a2 RPAREN
 args         ::= arg_list:a
                 {: RESULT = a; :}
                 ;
-arg_list     ::= arg_list:a1 COMMA exp:e2
+arg_list     ::= /*empty*/
+                 {: RESULT = new ExpList(new NilExp(0, 0), null); :}
+               | arg_list:a1 COMMA exp:e2
                  {: ExpList t = a1;
                     while( t.tail != null )
                       t = t.tail;
