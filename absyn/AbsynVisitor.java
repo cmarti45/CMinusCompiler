@@ -8,6 +8,12 @@ public interface AbsynVisitor {
 
   public void visit( AssignExp exp, int level );
 
+  public void visit(ArgsExp exp, int level );
+
+  public void visit(CallExp exp, int level );
+
+  public void visit(NilExp exp, int level );
+
   public void visit( IfExp exp, int level );
 
   public void visit( IntExp exp, int level );

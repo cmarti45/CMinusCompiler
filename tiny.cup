@@ -77,8 +77,9 @@ terminal String ID, NUM, TRUTH;
 terminal ERROR;
    
 non terminal Exp program1;
-non terminal ExpList program, stmt_seq, arg_list;
-non terminal Exp stmt, if_stmt, repeat_stmt, assign_stmt, read_stmt, write_stmt;
+non terminal ExpList program, stmt_seq;
+non terminal ExpList args, arg_list;
+non terminal Exp stmt, if_stmt, repeat_stmt, assign_stmt, read_stmt, write_stmt, call;
 non terminal Exp exp, simple_exp, term, signed_factor, factor;
 
 /* ----------------------------Grammar Section-------------------- */
@@ -182,21 +183,27 @@ factor       ::= LPAREN exp:e RPAREN
                  {: RESULT = new VarExp(ileft, iright, i); :}
                | TRUTH:t
                  {: RESULT = new TruthExp(tleft, tright, t); :}
-               | arg_list:a
-                 {: RESULT = a; :}
+               | call:c
+                 {: RESULT = c; :}
                ;
+call         ::= ID:i1 LPAREN args:a2 RPAREN
+                {: RESULT = new CallExp(i1left, i1right, i1, a2); :}
+                ;
 
+args         ::= arg_list:a
+                {: RESULT = a; :}
+                ;
 arg_list     ::= arg_list:a1 COMMA exp:e2
-                 {: ArgList t = a1;
+                 {: ExpList t = a1;
                     while( t.tail != null )
                       t = t.tail;
-                    t.tail = new ArgList(e2, null);
+                    t.tail = new ExpList(e2, null);
                     RESULT = a1;
                  :}
                | exp:e
-                 {: RESULT = new ArgList(e, null); :}
+                 {: RESULT = new ExpList(e, null); :}
                | error COMMA exp:e
                  {: parser.report_error("invalid", null);
-                    RESULT = new ArgList(e, null);
+                    RESULT = new ExpList(e, null);
                  :}
                ;

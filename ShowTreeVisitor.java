@@ -15,12 +15,38 @@ public class ShowTreeVisitor implements AbsynVisitor {
     } 
   }
 
+  public void visit( ArgList argList, int level ) {
+    while( argList != null ) {
+      argList.head.accept( this, level );
+      argList = argList.tail;
+    }
+  }
+
   public void visit( AssignExp exp, int level ) {
     indent( level );
     System.out.println( "AssignExp:" );
     level++;
     exp.lhs.accept( this, level );
     exp.rhs.accept( this, level );
+  }
+
+  public void visit(ArgsExp exp, int level ) {
+    indent( level );
+    System.out.println( "ArgsExp:" );
+    level++;
+    exp.args.accept(this, level);
+  }
+
+  public void visit(CallExp exp, int level ) {
+    indent( level );
+    System.out.println( "CallExp: " + exp.id);
+    level++;
+    exp.args.accept(this, level);
+  }
+
+  public void visit(NilExp exp, int level ) {
+    indent( level );
+    System.out.println("NilExp");
   }
 
   public void visit( IfExp exp, int level ) {
