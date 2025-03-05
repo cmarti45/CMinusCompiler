@@ -2,16 +2,16 @@
 
 read x; { input an integer }
 if x > 0 then { don't compute if x <= 0 }
-  fact := -2;   { same as fact := 1; }
+  fact = -2;   { same as fact = 1; }
 
   repeat
     int t;
     bool b;
     void f;
     void ff[23];
-    fact := fact * -addNumbers();
-    x := x / 1;
-    truth := false
+    fact = fact * -addNumbers();
+    x = x / 1;
+    truth = false
   until x = 0;
 
   write fact { output factorial of x }

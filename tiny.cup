@@ -133,7 +133,7 @@ repeat_stmt  ::= REPEAT:r stmt_seq:s UNTIL exp:e
                  {: RESULT = new RepeatExp(rleft, rright, s, e); :}
                ;
 
-assign_stmt  ::= ID:i ASSIGN exp:e
+assign_stmt  ::= ID:i EQ exp:e
                  {: RESULT = new AssignExp(ileft, iright, new VarExp(ileft, iright, VarExp.VOID, i), e); :}
                ;
 
