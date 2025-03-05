@@ -22,6 +22,14 @@ public class OpExp extends Exp {
     this.right = right;
   }
 
+  public OpExp( int row, int col, Exp left, Object op, Exp right ) {
+    this.row = row;
+    this.col = col;
+    this.left = left;
+    this.op = op.equals("*") ? TIMES : OVER;
+    this.right = right;
+  }
+
   public void accept( AbsynVisitor visitor, int level ) {
     visitor.visit( this, level );
   }

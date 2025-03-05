@@ -70,6 +70,8 @@ import java_cup.runtime.*;
 */
 /* Truth can be false or true */
 Truth = false|true
+MulOp = \*|\/
+TypeSpecifier = bool|int|void
    
 /* A line terminator is a \r (carriage return), \n (line feed), or
    \r\n. */
@@ -112,14 +114,16 @@ identifier = {letter}+
 ">"                { return symbol(sym.GT); }
 "+"                { return symbol(sym.PLUS); }
 "-"                { return symbol(sym.MINUS); }
-"*"                { return symbol(sym.TIMES); }
-"/"                { return symbol(sym.OVER); }
 "("                { return symbol(sym.LPAREN); }
 ")"                { return symbol(sym.RPAREN); }
+"["                { return symbol(sym.LBRACK); }
+"]"                { return symbol(sym.RBRACK); }
 ";"                { return symbol(sym.SEMI); }
 ","                {return symbol(sym.COMMA); }
 {number}           { return symbol(sym.NUM, yytext()); }
 {Truth}            { return symbol(sym.TRUTH, yytext()); }
+{MulOp}            { return symbol(sym.MULOP, yytext()); }
+{TypeSpecifier}    { return symbol(sym.TYPE, yytext()); }
 {identifier}       { return symbol(sym.ID, yytext()); }
 {WhiteSpace}+      { /* skip whitespace */ }   
 "{"[^\}]*"}"       { /* skip comments */ }

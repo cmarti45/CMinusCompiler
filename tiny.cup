@@ -71,15 +71,15 @@ parser code {:
    
 /* ------------Declaration of Terminals and Non Terminals Section----------- */
    
-terminal IF, THEN, ELSE, END, REPEAT, UNTIL, READ, WRITE;
-terminal ASSIGN, EQ, LT, GT, PLUS, MINUS, TIMES, OVER, LPAREN, RPAREN, SEMI, COMMA;
+terminal IF, THEN, ELSE, END, REPEAT, UNTIL, READ, WRITE, TYPE;
+terminal ASSIGN, EQ, LT, GT, PLUS, MINUS, MULOP, LPAREN, RPAREN, LBRACK, RBRACK, SEMI, COMMA;
 terminal String ID, NUM, TRUTH;
 terminal ERROR;
    
 non terminal Exp program1;
 non terminal ExpList program, stmt_seq;
 non terminal ExpList args, arg_list;
-non terminal Exp stmt, if_stmt, repeat_stmt, assign_stmt, read_stmt, write_stmt, call;
+non terminal Exp stmt, if_stmt, repeat_stmt, assign_stmt, read_stmt, write_stmt, call, var_dec;
 non terminal Exp exp, simple_exp, term, signed_factor, factor;
 
 /* ----------------------------Grammar Section-------------------- */
@@ -115,6 +115,8 @@ stmt         ::= if_stmt:i
                  {: RESULT = r; :}
                | assign_stmt:a
                  {: RESULT = a; :}
+               | var_dec:v
+                 {: RESULT = v; :}
                | read_stmt:r
                  {: RESULT = r; :}
                | write_stmt:w
@@ -132,11 +134,17 @@ repeat_stmt  ::= REPEAT:r stmt_seq:s UNTIL exp:e
                ;
 
 assign_stmt  ::= ID:i ASSIGN exp:e
-                 {: RESULT = new AssignExp(ileft, iright, new VarExp(ileft, iright, i), e); :} 
+                 {: RESULT = new AssignExp(ileft, iright, new VarExp(ileft, iright, VarExp.VOID, i), e); :}
+               ;
+
+var_dec  ::= TYPE:t ID:i
+                 {: RESULT = new VarExp(ileft, iright, t, i); :}
+             | TYPE:t ID:i LBRACK NUM:n RBRACK
+                 {: RESULT = new VarExp(ileft, iright, t, i, n); :}
                ;
 
 read_stmt    ::= READ:r ID:i
-                 {: RESULT = new ReadExp(rleft, rright, new VarExp(rleft, rright, i)); :}
+                 {: RESULT = new ReadExp(rleft, rright, new VarExp(rleft, rright, VarExp.VOID, i)); :}
                ;
 
 write_stmt   ::= WRITE:w exp:e
@@ -161,10 +169,8 @@ simple_exp   ::= simple_exp:s PLUS term:t
                  {: RESULT = t; :}
                ;
 
-term         ::= term:t TIMES signed_factor:f
-                 {: RESULT = new OpExp(tleft, tright, t, OpExp.TIMES, f); :}
-               | term:t OVER signed_factor:f
-                 {: RESULT = new OpExp(tleft, tright, t, OpExp.OVER, f); :}
+term         ::= term:t MULOP:m signed_factor:f
+                 {: RESULT = new OpExp(tleft, tright, t, m, f); :}
                | signed_factor:f
                  {: RESULT = f; :}
                ;
@@ -180,7 +186,7 @@ factor       ::= LPAREN exp:e RPAREN
                | NUM:n
                  {: RESULT = new IntExp(nleft, nright, n); :}
                | ID:i
-                 {: RESULT = new VarExp(ileft, iright, i); :}
+                 {: RESULT = new VarExp(ileft, iright, VarExp.VOID, i); :}
                | TRUTH:t
                  {: RESULT = new TruthExp(tleft, tright, t); :}
                | call:c

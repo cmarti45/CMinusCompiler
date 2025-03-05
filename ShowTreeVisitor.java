@@ -123,7 +123,16 @@ public class ShowTreeVisitor implements AbsynVisitor {
 
   public void visit( VarExp exp, int level ) {
     indent( level );
-    System.out.println( "VarExp: " + exp.name );
+    System.out.print( "VarExp:");
+    switch(exp.type){
+      case VarExp.VOID -> System.out.print(" void");
+      case VarExp.INT -> System.out.print(" int");
+      case VarExp.BOOL -> System.out.print(" bool");
+    }
+    if (exp.isArray) {
+      System.out.print("[" + exp.size + "]");
+    }
+    System.out.println(" " + exp.name);
   }
 
   public void visit( WriteExp exp, int level ) {
