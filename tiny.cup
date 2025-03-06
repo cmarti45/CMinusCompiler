@@ -72,7 +72,7 @@ parser code {:
 /* ------------Declaration of Terminals and Non Terminals Section----------- */
    
 terminal IF, THEN, ELSE, END, REPEAT, UNTIL, READ, WRITE, TYPE;
-terminal ASSIGN, EQ, LT, GT, PLUS, MINUS, MULOP, LPAREN, RPAREN, LBRACK, RBRACK, SEMI, COMMA;
+terminal ASSIGN, EQ, LT, GT, LEQ, GTE, NEQ, EEQ, PLUS, MINUS, AND, OR, MULOP, LPAREN, RPAREN, LBRACK, RBRACK, SEMI, COMMA, UOP;
 terminal String ID, NUM, TRUTH;
 terminal ERROR;
    
@@ -80,7 +80,7 @@ non terminal Exp program1;
 non terminal ExpList program, stmt_seq;
 non terminal ExpList args, arg_list;
 non terminal Exp stmt, if_stmt, repeat_stmt, assign_stmt, read_stmt, write_stmt, call, var_dec;
-non terminal Exp exp, simple_exp, term, signed_factor, factor;
+non terminal Exp exp, obool_exp, abool_exp, ubool_exp, simple_exp, add_exp, term, signed_factor, factor;
 
 /* ----------------------------Grammar Section-------------------- */
    
@@ -150,20 +150,46 @@ read_stmt    ::= READ:r ID:i
 write_stmt   ::= WRITE:w exp:e
                  {: RESULT = new WriteExp(wleft, wright, e); :}
                ;
+exp           ::= obool_exp: e
+                {: RESULT = e; :}
+              ;
 
-exp          ::= simple_exp:s1 LT simple_exp:s2
-                 {: RESULT = new OpExp(s1left, s1right, s1, OpExp.LT, s2); :}
-               | simple_exp:s1 GT simple_exp:s2
-                 {: RESULT = new OpExp(s1left, s1right, s1, OpExp.GT, s2); :}
-               | simple_exp:s1 EQ simple_exp:s2
-                 {: RESULT = new OpExp(s1left, s1right, s1, OpExp.EQ, s2); :}
+obool_exp      ::= obool_exp:o1 OR abool_exp:a2
+                 {: RESULT = new BoolExp(o1left, o1right, o1, BoolExp.OR, a2); :}
+               |   abool_exp:a
+                 {: RESULT = a; :}
+               ;
+
+abool_exp      ::= abool_exp:a AND ubool_exp:u
+                 {: RESULT = new BoolExp(aleft, aright, a, BoolExp.AND, u); :}
+               |   ubool_exp:u
+                 {: RESULT = u; :}
+               ;
+
+ubool_exp      ::= UOP ubool_exp:u
+                 {: RESULT = new OpExp(uleft, uright, new NilExp(0,0), OpExp.UOP, u); :}
                | simple_exp:s
                  {: RESULT = s; :}
                ;
 
-simple_exp   ::= simple_exp:s PLUS term:t
+simple_exp          ::= add_exp:s1 LT add_exp:s2
+                 {: RESULT = new OpExp(s1left, s1right, s1, OpExp.LT, s2); :}
+               | add_exp:s1 GT add_exp:s2
+                 {: RESULT = new OpExp(s1left, s1right, s1, OpExp.GT, s2); :}
+               | add_exp:s1 NEQ add_exp:s2
+                 {: RESULT = new OpExp(s1left, s1right, s1, OpExp.NEQ, s2); :}
+               | add_exp:s1 GTE add_exp:s2
+                 {: RESULT = new OpExp(s1left, s1right, s1, OpExp.GTE, s2); :}
+               | add_exp:s1 LEQ add_exp:s2
+                 {: RESULT = new OpExp(s1left, s1right, s1, OpExp.LEQ, s2); :}
+               | add_exp:s1 EEQ add_exp:s2
+                 {: RESULT = new OpExp(s1left, s1right, s1, OpExp.EEQ, s2); :}
+               | add_exp:s
+                 {: RESULT = s; :}
+               ;
+add_exp   ::= add_exp:s PLUS term:t
                  {: RESULT = new OpExp(sleft, sright, s, OpExp.PLUS, t); :}
-               | simple_exp:s MINUS term:t
+               | add_exp:s MINUS term:t
                  {: RESULT = new OpExp(sleft, sright, s, OpExp.MINUS, t); :}
                | term:t
                  {: RESULT = t; :}

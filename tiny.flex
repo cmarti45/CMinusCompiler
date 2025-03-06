@@ -109,9 +109,13 @@ identifier = {letter}+
 "read"             { return symbol(sym.READ); }
 "write"            { return symbol(sym.WRITE); }
 ":="               { return symbol(sym.ASSIGN); }
-"="                { return symbol(sym.EQ); }
+\>\=                { return symbol(sym.GTE); }
+\<\=                { return symbol(sym.LEQ); }
 "<"                { return symbol(sym.LT); }
 ">"                { return symbol(sym.GT); }
+\=\=                { return symbol(sym.EEQ); }
+\!\=                { return symbol(sym.NEQ); }
+"="                { return symbol(sym.EQ); }
 "+"                { return symbol(sym.PLUS); }
 "-"                { return symbol(sym.MINUS); }
 "("                { return symbol(sym.LPAREN); }
@@ -120,6 +124,9 @@ identifier = {letter}+
 "]"                { return symbol(sym.RBRACK); }
 ";"                { return symbol(sym.SEMI); }
 ","                {return symbol(sym.COMMA); }
+"~"                 {return symbol(sym.UOP); }
+\&\&                {return symbol(sym.AND); }
+\|\|                {return symbol(sym.OR); }
 {number}           { return symbol(sym.NUM, yytext()); }
 {Truth}            { return symbol(sym.TRUTH, yytext()); }
 {MulOp}            { return symbol(sym.MULOP, yytext()); }

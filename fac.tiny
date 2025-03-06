@@ -1,20 +1,22 @@
-{ Sample program in Tiny language - compute factorial }
 
-read x; { input an integer }
-if x > 0 then { don't compute if x <= 0 }
-  fact = -2;   { same as fact = 1; }
+
+read x;
+if x > 0 then
+  fact = -2;
 
   repeat
     int t;
     bool b;
     void f;
     void ff[23];
-    fact = fact * -addNumbers();
-    x = x / 1;
+    fact = fact * (-addNumbers() || false);
+    x = 0 || 1 && 2;
+    x = (0 || 1) && 2;
+    x = -(0 || -1) && -2;
     truth = false
   until x = 0;
 
-  write fact { output factorial of x }
+  write fact
 else
   write -1
 end
