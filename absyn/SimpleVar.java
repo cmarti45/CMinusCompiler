@@ -6,6 +6,10 @@ public class SimpleVar extends Var{
         this.name = name;
     }
 
+    public static VarExp var( int pos, String name){
+        return new VarExp(pos, new SimpleVar( pos, name));
+    }
+
     public void accept( AbsynVisitor visitor, int level ) {
         visitor.visit( this, level );
     }

@@ -19,7 +19,20 @@ class Main {
   static public void main(String argv[]) {    
     /* Start the parser */
     try {
-      parser p = new parser(new Lexer(new FileReader(argv[0])));
+      Lexer lexer = new Lexer(new FileReader(argv[0]));
+
+            Scanner scanner = new Scanner(lexer);
+            Symbol tok = null;
+            while( (tok=scanner.getNextToken()) != null ) {
+                System.out.print(sym.terminalNames[tok.sym]);
+                System.out.print("(" + tok.sym + ")");
+                if (tok.value != null)
+                    System.out.print("(" + tok.value + ")");
+                System.out.println();
+            }
+
+        lexer.yyreset(new FileReader(argv[0]));
+        parser p = new parser(lexer);
       Absyn result = (Absyn)(p.parse().value);      
       if (SHOW_TREE && result != null) {
          System.out.println("The abstract syntax tree is:");

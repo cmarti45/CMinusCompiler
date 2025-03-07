@@ -9,7 +9,7 @@
    
 /* --------------------------Usercode Section------------------------ */
    
-import absyn.VarExp;import java_cup.runtime.*;import absyn.Symbol;
+import java_cup.runtime.*;import absyn.Symbol;
       
 %%
    
@@ -21,10 +21,6 @@ import absyn.VarExp;import java_cup.runtime.*;import absyn.Symbol;
 */
 %class Lexer
 %type absyn.Symbol
-
-%eofval{
-  return null;
-%eofval};
 
 /*
   The current line number can be accessed with the variable yyline
@@ -49,17 +45,17 @@ import absyn.VarExp;import java_cup.runtime.*;import absyn.Symbol;
 */
 %{
     /* To create a new java_cup.runtime.Symbol with information about
-       the current token, the token will have no value in this
-       case. */
-    private Symbol symbol(int type) {
-        return new Symbol(type, yycolumn);
-    }
-    
-    /* Also creates a new java_cup.runtime.Symbol with information
-       about the current token, but this object has a value. */
-    private Symbol symbol(int type, Object value) {
-        return new Symbol(type, yycolumn, value);
-    }
+               the current token, the token will have no value in this
+               case. */
+            private Symbol symbol(int type) {
+                return new Symbol(type, yycolumn);
+            }
+
+            /* Also creates a new java_cup.runtime.Symbol with information
+               about the current token, but this object has a value. */
+            private Symbol symbol(int type, Object value) {
+                return new Symbol(type, yycolumn, value);
+            }
 %}
    
 
@@ -100,44 +96,45 @@ identifier = {letter}+
    code, that will be executed when the scanner matches the associated
    regular expression. */
 
-"if"               { return symbol(sym.IF); }
-"then"             { return symbol(sym.THEN); }
-"else"             { return symbol(sym.ELSE); }
-"end"              { return symbol(sym.END); }
-"repeat"           { return symbol(sym.REPEAT); }
-"until"            { return symbol(sym.UNTIL); }
-"read"             { return symbol(sym.READ); }
-"write"            { return symbol(sym.WRITE); }
-":="               { return symbol(sym.ASSIGN); }
+
+"if"                { return symbol(sym.IF); }
+"then"              { return symbol(sym.THEN); }
+"else"              { return symbol(sym.ELSE); }
+"end"               { return symbol(sym.END); }
+"repeat"            { return symbol(sym.REPEAT); }
+"until"             { return symbol(sym.UNTIL); }
+"read"              { return symbol(sym.READ); }
+"write"             { return symbol(sym.WRITE); }
+":="                { return symbol(sym.ASSIGN); }
 \>\=                { return symbol(sym.GTE); }
 \<\=                { return symbol(sym.LEQ); }
-"<"                { return symbol(sym.LT); }
-">"                { return symbol(sym.GT); }
+"<"                 { return symbol(sym.LT); }
+">"                 { return symbol(sym.GT); }
 \=\=                { return symbol(sym.EEQ); }
 \!\=                { return symbol(sym.NEQ); }
-"="                { return symbol(sym.EQ); }
-"+"                { return symbol(sym.PLUS); }
-"-"                { return symbol(sym.MINUS); }
-"("                { return symbol(sym.LPAREN); }
-")"                { return symbol(sym.RPAREN); }
-"["                { return symbol(sym.LBRACK); }
-"]"                { return symbol(sym.RBRACK); }
-"{"                { return symbol(sym.LBRACE); }
-"}"                { return symbol(sym.RBRACE); }
-";"                { return symbol(sym.SEMI); }
-","                {return symbol(sym.COMMA); }
+"="                 { return symbol(sym.EQ); }
+"+"                 { return symbol(sym.PLUS); }
+"-"                 { return symbol(sym.MINUS); }
+"("                 { return symbol(sym.LPAREN); }
+")"                 { return symbol(sym.RPAREN); }
+"["                 { return symbol(sym.LBRACK); }
+"]"                 { return symbol(sym.RBRACK); }
+"{"                 { return symbol(sym.LBRACE); }
+"}"                 { return symbol(sym.RBRACE); }
+";"                 { return symbol(sym.SEMI); }
+","                 {return symbol(sym.COMMA); }
 "~"                 {return symbol(sym.NOT); }
 "return"            {return symbol(sym.RETURN); }
 \&\&                {return symbol(sym.AND); }
 \|\|                {return symbol(sym.OR); }
-{number}           { return symbol(sym.NUM, yytext()); }
-{Truth}            { return symbol(sym.TRUTH, yytext()); }
-"*"                { return symbol(sym.TIMES); }
-"/"                { return symbol(sym.OVER); }
-"int"              { return symbol(sym.INT); }
+{number}            { return symbol(sym.NUM, yytext()); }
+{Truth}             { return symbol(sym.TRUTH, yytext()); }
+"*"                 { return symbol(sym.TIMES); }
+"/"                 { return symbol(sym.OVER); }
+"int"               { return symbol(sym.INT); }
 "void"              { return symbol(sym.VOID); }
 "bool"              { return symbol(sym.BOOL); }
-{identifier}       { return symbol(sym.ID, yytext()); }
-{WhiteSpace}+      { /* skip whitespace */ }   
-"{"[^\}]*"}"       { /* skip comments */ }
-.                  { return symbol(sym.ERROR); }
+{identifier}        { return symbol(sym.ID, yytext()); }
+{WhiteSpace}+       { /* skip whitespace */ }
+\/[*]([^*]|([*][^/]))*[*]+\/        { /* skip comments */ }
+<<EOF>>             { return null; }

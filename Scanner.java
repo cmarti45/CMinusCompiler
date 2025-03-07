@@ -1,6 +1,5 @@
 import java.io.InputStreamReader;
 
-import absyn.VarExp;
 import absyn.Symbol;
 
 public class Scanner {
@@ -20,6 +19,7 @@ public class Scanner {
       Symbol tok = null;
       while( (tok=scanner.getNextToken()) != null ) {
         System.out.print(sym.terminalNames[tok.sym]);
+        System.out.print("(" + tok.sym + ")");
         if (tok.value != null)
            System.out.print("(" + tok.value + ")");
         System.out.println();

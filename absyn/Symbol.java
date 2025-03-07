@@ -2,8 +2,6 @@ package absyn;
 
 public class Symbol extends java_cup.runtime.Symbol {
     public int pos;
-    public int sym;
-    public java.lang.Object value;
 
     public Symbol(int sym_num){
         super(sym_num);
@@ -22,4 +20,5 @@ public class Symbol extends java_cup.runtime.Symbol {
     public Symbol(int id, Object value){
         super(id, value);
     }
+
 }

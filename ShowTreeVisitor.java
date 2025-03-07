@@ -31,6 +31,10 @@ public class ShowTreeVisitor implements AbsynVisitor {
   }
 
   public void visit( VarDecList varDecList, int level ) {
+    while( varDecList != null ) {
+      varDecList.head.accept( this, level );
+      varDecList = varDecList.tail;
+    }
   }
 
   public void visit( ArgList argList, int level ) {
@@ -50,7 +54,7 @@ public class ShowTreeVisitor implements AbsynVisitor {
 
   public void visit(NameTy ty, int level){
     indent(level);
-    System.out.print(" type: ");
+    System.out.print("type: ");
     if (ty.type == NameTy.VOID){
       System.out.println( "void" );
     }
@@ -68,7 +72,7 @@ public class ShowTreeVisitor implements AbsynVisitor {
     level++;
     dec.type.accept(this, level);
     indent(level);
-    System.out.println(" name: " + dec.name);
+    System.out.println( "name: " + dec.name);
   }
 
   public void visit( ArrayDec dec, int level ) {
@@ -77,9 +81,9 @@ public class ShowTreeVisitor implements AbsynVisitor {
     level++;
     dec.type.accept(this, level);
     indent(level);
-    System.out.println(" name: " + dec.name);
+    System.out.println("name: " + dec.name);
     indent(level);
-    System.out.println(" size: " + dec.size);
+    System.out.println("size: " + dec.size);
   }
 
   public void visit(ArgsExp exp, int level ) {
@@ -227,11 +231,11 @@ public class ShowTreeVisitor implements AbsynVisitor {
     indent (level );
     System.out.println( "CompoundExp: ");
     level++;
-    while( vars != null ) {
+    while( vars != null && vars.head != null) {
       vars.head.accept( this, level );
       vars = vars.tail;
     }
-    while( exps != null ) {
+    while( exps != null&&exps.head != null) {
       exps.head.accept( this, level );
       exps = exps.tail;
     }

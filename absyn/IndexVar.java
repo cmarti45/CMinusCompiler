@@ -9,6 +9,10 @@ public class IndexVar extends Var{
         this.index = index;
     }
 
+    public static VarExp var( int pos, String name, Exp index){
+        return new VarExp(pos, new IndexVar(pos, name, index));
+    }
+
     public void accept( AbsynVisitor visitor, int level ) {
         visitor.visit( this, level );
     }

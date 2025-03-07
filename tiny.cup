@@ -11,20 +11,6 @@ import absyn.*;import java.lang.Object;
 /* Parser code to change the way the parser reports errors (include
    line and column number of the error). */
 parser code {:
-        public class Symbol extends java.lang.Object {
-            int pos;
-            int parse_state;
-            int sym;
-            Object value;
-
-            public Symbol(int pos, int parse_state, int sym, Object value){
-               this.pos = pos;
-               this.parse_state = parse_state;
-               this.sym = sym;
-               this.value = value;
-            }
-        }
-
 
     /* Change the method report_error so it will display the line and
        column of where the error occurred in the input as well as the
@@ -54,6 +40,7 @@ parser code {:
                     /* Add to the end of the StringBuffer error message
                        the column number of the error in the input. */
                     m.append(", column "+(s.pos+1));
+                    m.append(s.sym);
             }
         }
 
@@ -97,7 +84,7 @@ non terminal ExpList stmt_seq;
 non terminal ExpList args, arg_list;
 non terminal Exp exp_stmt, stmt, if_stmt, write_stmt, assign_stmt, call;
 non terminal Exp exp, obool_exp, abool_exp, ubool_exp, simple_exp, add_exp, term, signed_factor, factor, compound_stmt;
-non terminal Var var;
+non terminal VarExp var;
 non terminal Dec dec;
 non terminal VarDec var_dec;
 non terminal VarDecList local_dec;
@@ -105,7 +92,8 @@ non terminal DecList dec_list;
 non terminal FunctionDec fun_dec;
 /* ----------------------------Grammar Section-------------------- */
 
-start with exp;
+start with dec_list;
+
 
 program1     ::= exp:e
                  {: RESULT = e; :}
@@ -130,12 +118,12 @@ dec_list    ::= dec_list:d1 dec:d2
 
 dec         ::= var_dec:v
               {: RESULT = v; :}
-             | fun_dec:f
-              {: RESULT = f; :}
+              | fun_dec:f1
+              {: RESULT = f1; :}
             ;
 
-fun_dec       ::= type:t ID:i LPAREN arg_list:a RPAREN compound_stmt:c
-                {: RESULT = new FunctionDec(tleft, t, i, null, c); :}
+fun_dec       ::= INT:i1 ID:i2 LPAREN arg_list:a RPAREN compound_stmt:c
+                {: RESULT = new FunctionDec(i1left, new NameTy(i1left, NameTy.INT), i2, null, c); :}
                ;
 
 compound_stmt ::= LBRACE local_dec:l stmt_seq:s RBRACE
@@ -188,13 +176,23 @@ exp_stmt     ::= exp:e SEMI
                  {: RESULT = new NilExp(0); :}
                ;
 
-var_dec  ::= type:t ID:i
-               {: RESULT = new SimpleDec(tleft, t, i); :}
-             | type:t ID:i LBRACK NUM:n RBRACK
-               {: RESULT = new ArrayDec(tleft, t, i, Integer.parseInt(n)); :}
+var_dec  ::= BOOL:t ID:i SEMI
+               {: RESULT = new SimpleDec(tleft, new NameTy(tleft, NameTy.BOOL), i); :}
+             | INT:t ID:i SEMI
+               {: RESULT = new SimpleDec(tleft, new NameTy(tleft, NameTy.INT), i); :}
+             | VOID:t ID:i SEMI
+               {: RESULT = new SimpleDec(tleft, new NameTy(tleft, NameTy.VOID), i); :}
+             | BOOL:t ID:i LBRACK NUM:n RBRACK SEMI
+               {: RESULT = new ArrayDec(tleft, new NameTy(tleft, NameTy.BOOL), i, Integer.parseInt(n)); :}
+             | INT:t ID:i LBRACK NUM:n RBRACK SEMI
+               {: RESULT = new ArrayDec(tleft, new NameTy(tleft, NameTy.INT), i, Integer.parseInt(n)); :}
+             | VOID:t ID:i LBRACK NUM:n RBRACK SEMI
+               {: RESULT = new ArrayDec(tleft, new NameTy(tleft, NameTy.VOID), i, Integer.parseInt(n)); :}
              ;
 
-exp           ::= obool_exp: e
+exp           ::= var:v1 EQ exp:e2
+                {: RESULT =  new AssignExp(v1left, v1, e2); :}
+               | obool_exp: e
                 {: RESULT = e; :}
               ;
 
@@ -228,8 +226,6 @@ simple_exp          ::= add_exp:s1 LT add_exp:s2
                  {: RESULT = new OpExp(s1left, s1, OpExp.LEQ, s2); :}
                | add_exp:s1 EEQ add_exp:s2
                  {: RESULT = new OpExp(s1left, s1, OpExp.EEQ, s2); :}
-               | add_exp:s1 EQ add_exp:s2
-                 {: RESULT = new OpExp(s1left, s1, OpExp.EQ, s2); :}
                | add_exp:s
                  {: RESULT = s; :}
                ;
@@ -260,7 +256,7 @@ factor       ::= LPAREN exp:e RPAREN
                | NUM:n
                  {: RESULT = new IntExp(nleft, n); :}
                | var:v
-                 {: RESULT = new VarExp(vleft, v); :}
+                 {: RESULT = v; :}
                | TRUTH:t
                  {: RESULT = new BoolExp(tleft, t); :}
                | call:c
@@ -268,9 +264,9 @@ factor       ::= LPAREN exp:e RPAREN
                ;
 
 var          ::= ID:i
-                {: RESULT = new SimpleVar(ileft, i); :}
+                {: RESULT = SimpleVar.var(ileft, i); :}
                | ID:i1 LBRACK exp:e2 RBRACK
-                {: RESULT = new IndexVar(i1left, i1, e2); :}
+                {: RESULT = IndexVar.var(i1left, i1, e2); :}
              ;
 
 call         ::= ID:i1 LPAREN args:a2 RPAREN
