@@ -122,9 +122,12 @@ identifier = {letter}+
 ")"                { return symbol(sym.RPAREN); }
 "["                { return symbol(sym.LBRACK); }
 "]"                { return symbol(sym.RBRACK); }
+"{"                { return symbol(sym.LBRACE); }
+"}"                { return symbol(sym.RBRACE); }
 ";"                { return symbol(sym.SEMI); }
 ","                {return symbol(sym.COMMA); }
-"~"                 {return symbol(sym.UOP); }
+"~"                 {return symbol(sym.NOT); }
+"return"            {return symbol(sym.RETURN); }
 \&\&                {return symbol(sym.AND); }
 \|\|                {return symbol(sym.OR); }
 {number}           { return symbol(sym.NUM, yytext()); }

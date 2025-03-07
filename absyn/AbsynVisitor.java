@@ -32,4 +32,20 @@ public interface AbsynVisitor {
 
   public void visit( WriteExp exp, int level );
 
+  public void visit( SimpleVar var, int level );
+
+  public void visit( IndexVar var, int level );
+
+  public void visit ( SimpleDec dec, int level);
+
+  public void visit ( ArrayDec dec, int level);
+
+  public void visit ( DecList dec, int level);
+
+  public void visit ( VarDecList dec, int level);
+
+  public void visit ( NameTy ty, int level);
+
+  public void visit ( ExpVarDecList dec, int level);
+
 }

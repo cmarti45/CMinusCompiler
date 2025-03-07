@@ -13,7 +13,7 @@ public class OpExp extends Exp {
   public final static int LEQ = 9;
   public final static int EEQ = 10;
   public final static int NEQ = 11;
-  public final static int UOP = 12;
+  public final static int NOT = 12;
 
   public Exp left;
   public int op;

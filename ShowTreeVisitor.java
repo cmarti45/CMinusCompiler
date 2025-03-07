@@ -1,5 +1,8 @@
 import absyn.*;
 
+import javax.xml.transform.Source;
+import java.sql.SQLOutput;
+
 public class ShowTreeVisitor implements AbsynVisitor {
 
   final static int SPACES = 4;
@@ -15,6 +18,24 @@ public class ShowTreeVisitor implements AbsynVisitor {
     }
   }
 
+  public void visit( DecList decList, int level ) {
+    while( decList != null ) {
+      decList.head.accept( this, level );
+      decList = decList.tail;
+    }
+  }
+
+  public void visit( ExpVarDecList dec, int level){
+    VarDecList varDecList = dec.dec;
+    while( varDecList != null ) {
+      varDecList.head.accept( this, level );
+      varDecList = varDecList.tail;
+    }
+  }
+
+  public void visit( VarDecList varDecList, int level ) {
+  }
+
   public void visit( ArgList argList, int level ) {
     while( argList != null ) {
       argList.head.accept( this, level );
@@ -28,6 +49,40 @@ public class ShowTreeVisitor implements AbsynVisitor {
     level++;
     exp.lhs.accept( this, level );
     exp.rhs.accept( this, level );
+  }
+
+  public void visit(NameTy ty, int level){
+    indent(level);
+    System.out.print(" type: ");
+    if (ty.type == NameTy.VOID){
+      System.out.println( "void" );
+    }
+    if (ty.type == NameTy.INT){
+      System.out.println( "int" );
+    }
+    if (ty.type == NameTy.BOOL){
+      System.out.println( "bool" );
+    }
+  }
+
+  public void visit( SimpleDec dec, int level ) {
+    indent( level );
+    System.out.println( "Declare Var:" );
+    level++;
+    dec.type.accept(this, level);
+    indent(level);
+    System.out.println(" name: " + dec.name);
+  }
+
+  public void visit( ArrayDec dec, int level ) {
+    indent( level );
+    System.out.println( "Declare Var:" );
+    level++;
+    dec.type.accept(this, level);
+    indent(level);
+    System.out.println(" name: " + dec.name);
+    indent(level);
+    System.out.println(" size: " + dec.size);
   }
 
   public void visit(ArgsExp exp, int level ) {
@@ -129,7 +184,7 @@ public class ShowTreeVisitor implements AbsynVisitor {
       case OpExp.EEQ:
         System.out.println( " == " );
         break;
-      case OpExp.UOP:
+      case OpExp.NOT:
         System.out.println( " ~ " );
         break;
       default:
@@ -148,6 +203,19 @@ public class ShowTreeVisitor implements AbsynVisitor {
     exp.input.accept( this, ++level );
   }
 
+  public void visit( SimpleVar var, int level ) {
+    indent( level );
+    System.out.println("name: " + var.name);
+  }
+
+  public void visit( IndexVar var, int level ) {
+    indent( level );
+    System.out.println("name: " + var.name);
+    System.out.println("index: ");
+    level++;
+    var.index.accept( this, ++level );
+  }
+
   public void visit( RepeatExp exp, int level ) {
     indent( level );
     System.out.println( "RepeatExp:" );
@@ -158,16 +226,9 @@ public class ShowTreeVisitor implements AbsynVisitor {
 
   public void visit( VarExp exp, int level ) {
     indent( level );
-    System.out.print( "VarExp:");
-    switch(exp.type){
-      case VarExp.VOID -> System.out.print(" void");
-      case VarExp.INT -> System.out.print(" int");
-      case VarExp.BOOL -> System.out.print(" bool");
-    }
-    if (exp.isArray) {
-      System.out.print("[" + exp.size + "]");
-    }
-    System.out.println(" " + exp.name);
+    System.out.println( "VarExp:" );
+    level++;
+    exp.var.accept(this, level);
   }
 
   public void visit( WriteExp exp, int level ) {

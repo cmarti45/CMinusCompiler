@@ -2,25 +2,25 @@
   Created by: Fei Song
   File Name: tiny.cup
 */
-   
-   
+
+
 /* ----------------------Preliminary Declarations Section--------------------*/
-   
+
 import absyn.*;
-   
+
 /* Parser code to change the way the parser reports errors (include
    line and column number of the error). */
 parser code {:
-    
+
     /* Change the method report_error so it will display the line and
        column of where the error occurred in the input as well as the
        reason for the error which is passed into the method in the
        String 'message'. */
     public void report_error(String message, Object info) {
-   
+
         /* Create a StringBuffer called 'm' with the string 'Error' in it. */
         StringBuffer m = new StringBuffer("Error");
-   
+
         /* Check if the information passed to the method is the same
            type as the type java_cup.runtime.Symbol. */
         if (info instanceof java_cup.runtime.Symbol) {
@@ -28,31 +28,31 @@ parser code {:
                information in the object info that is being typecasted
                as a java_cup.runtime.Symbol object. */
             java_cup.runtime.Symbol s = ((java_cup.runtime.Symbol) info);
-   
+
             /* Check if the line number in the input is greater or
                equal to zero. */
-            if (s.left >= 0) {                
+            if (s.left >= 0) {
                 /* Add to the end of the StringBuffer error message
                    the line number of the error in the input. */
-                m.append(" in line "+(s.left+1));   
+                m.append(" in line "+(s.left+1));
                 /* Check if the column number in the input is greater
                    or equal to zero. */
-                if (s.right >= 0)                    
+                if (s.right >= 0)
                     /* Add to the end of the StringBuffer error message
                        the column number of the error in the input. */
                     m.append(", column "+(s.right+1));
             }
         }
-   
+
         /* Add to the end of the StringBuffer error message created in
            this method the message that was passed into this method. */
         m.append(" : "+message);
-   
+
         /* Print the contents of the StringBuffer 'm', which contains
            an error message, out on a line. */
         System.err.println(m);
     }
-   
+
     /* Change the method report_fatal_error so when it reports a fatal
        error it will display the line and column number of where the
        fatal error occurred in the input as well as the reason for the
@@ -67,26 +67,29 @@ parser code {:
     public static boolean valid = true;
 
 :};
-   
-   
+
+
 /* ------------Declaration of Terminals and Non Terminals Section----------- */
-   
+
 terminal IF, THEN, ELSE, END, REPEAT, UNTIL, READ, WRITE, TYPE;
-terminal ASSIGN, EQ, LT, GT, LEQ, GTE, NEQ, EEQ, PLUS, MINUS, AND, OR, MULOP, LPAREN, RPAREN, LBRACK, RBRACK, SEMI, COMMA, UOP;
+terminal ASSIGN, RETURN, EQ, LT, GT, LEQ, GTE, NEQ, EEQ, PLUS, MINUS, AND, OR, MULOP;
+terminal LPAREN, RPAREN, LBRACK, RBRACK, LBRACE, RBRACE SEMI, COMMA, NOT;
 terminal String ID, NUM, TRUTH;
 terminal ERROR;
-   
+
 non terminal Exp program1;
 non terminal ExpList program, stmt_seq;
 non terminal ExpList args, arg_list;
-non terminal Exp stmt, if_stmt, repeat_stmt, assign_stmt, read_stmt, write_stmt, call, var_dec;
+non terminal Exp exp_stmt, stmt, if_stmt, repeat_stmt, assign_stmt, write_stmt, call;
 non terminal Exp exp, obool_exp, abool_exp, ubool_exp, simple_exp, add_exp, term, signed_factor, factor;
-
+non terminal Var var;
+non terminal VarDec var_dec;
+non terminal VarDecList var_dec_list;
 /* ----------------------------Grammar Section-------------------- */
-   
+
 start with program;
 
-program1     ::= exp:e 
+program1     ::= exp:e
                  {: RESULT = e; :}
                ;
 
@@ -94,7 +97,14 @@ program	     ::= stmt_seq:s
                  {: RESULT = s; :}
                ;
 
-stmt_seq     ::= stmt_seq:s1 SEMI stmt:s2 
+local_dec    ::= local_dec:l var_dec:v
+                 {: ExpList t = s1;
+                     while( t.tail != null )
+                       t = t.tail;
+                     t.tail = new ExpList(s2, null);
+                     RESULT = s1;
+                 :}
+stmt_seq     ::= stmt_seq:s1 stmt:s2
                  {: ExpList t = s1;
                     while( t.tail != null )
                       t = t.tail;
@@ -104,23 +114,23 @@ stmt_seq     ::= stmt_seq:s1 SEMI stmt:s2
                | stmt:s
                  {: RESULT = new ExpList(s, null); :}
                | error SEMI stmt:s
-                 {: parser.report_error("invalid", null); 
-                    RESULT = new ExpList(s, null); 
+                 {: parser.report_error("invalid", null);
+                    RESULT = new ExpList(s, null);
                  :}
                ;
 
-stmt         ::= if_stmt:i
-                 {: RESULT = i; :}
-               | repeat_stmt:r
-                 {: RESULT = r; :}
+stmt         ::= exp_stmt:e
+                 {: RESULT = e; :}
                | assign_stmt:a
                  {: RESULT = a; :}
-               | var_dec:v
-                 {: RESULT = v; :}
-               | read_stmt:r
-                 {: RESULT = r; :}
-               | write_stmt:w
-                 {: RESULT = w; :}
+               | var_dec_list:v
+                 {: RESULT = new ExpVarDecList(vleft, vright, v); :} //todo: fix
+               ;
+
+exp_stmt     ::= exp:e SEMI
+                 {: RESULT = e; :}
+               | SEMI
+                 {: RESULT = new NilExp(0, 0); :}
                ;
 
 if_stmt      ::= IF:i exp:e THEN stmt_seq:s END
@@ -134,22 +144,52 @@ repeat_stmt  ::= REPEAT:r stmt_seq:s UNTIL exp:e
                ;
 
 assign_stmt  ::= ID:i EQ exp:e
-                 {: RESULT = new AssignExp(ileft, iright, new VarExp(ileft, iright, VarExp.VOID, i), e); :}
-               ;
+                 {: RESULT = e; :}
+               ; //Todo fix this
+
+var_dec_list ::= var_dec_list:v1 var_dec: v2
+                  {: VarDecList v = v1;
+                     while( v.tail != null )
+                       v = v.tail;
+                     v.tail = new VarDecList(v2, null);
+                     RESULT = v1;
+                  :}
+                | var_dec:v
+                  {: RESULT = new VarDecList(v, null); :}
+                ;
 
 var_dec  ::= TYPE:t ID:i
-                 {: RESULT = new VarExp(ileft, iright, t, i); :}
+                 {:
+                 int ty = 0;
+                 if (t.toString().equals("void")){
+                    ty = NameTy.VOID;
+                 }
+                 if (t.toString().equals("int")){
+                    ty = NameTy.INT;
+                 }
+                 if (t.toString().equals("bool")){
+                    ty = NameTy.BOOL;
+                 }
+                 RESULT = new SimpleDec(tleft, tright, new NameTy(tleft, tright, ty), i); :}
              | TYPE:t ID:i LBRACK NUM:n RBRACK
-                 {: RESULT = new VarExp(ileft, iright, t, i, n); :}
-               ;
-
-read_stmt    ::= READ:r ID:i
-                 {: RESULT = new ReadExp(rleft, rright, new VarExp(rleft, rright, VarExp.VOID, i)); :}
+                 {:
+                 int ty = 0;
+                 if (t.toString() == "void"){
+                    ty = NameTy.VOID;
+                 }
+                 if (t.toString() == "int"){
+                    ty = NameTy.INT;
+                 }
+                 if (t.toString() == "bool"){
+                    ty = NameTy.BOOL;
+                 }
+                 RESULT = new ArrayDec(tleft, tright, new NameTy(tleft, tright, ty), i, Integer.parseInt(n)); :}
                ;
 
 write_stmt   ::= WRITE:w exp:e
                  {: RESULT = new WriteExp(wleft, wright, e); :}
                ;
+
 exp           ::= obool_exp: e
                 {: RESULT = e; :}
               ;
@@ -166,8 +206,8 @@ abool_exp      ::= abool_exp:a AND ubool_exp:u
                  {: RESULT = u; :}
                ;
 
-ubool_exp      ::= UOP ubool_exp:u
-                 {: RESULT = new OpExp(uleft, uright, new NilExp(0,0), OpExp.UOP, u); :}
+ubool_exp      ::= NOT ubool_exp:u
+                 {: RESULT = new OpExp(uleft, uright, new NilExp(0,0), OpExp.NOT, u); :}
                | simple_exp:s
                  {: RESULT = s; :}
                ;
@@ -184,6 +224,8 @@ simple_exp          ::= add_exp:s1 LT add_exp:s2
                  {: RESULT = new OpExp(s1left, s1right, s1, OpExp.LEQ, s2); :}
                | add_exp:s1 EEQ add_exp:s2
                  {: RESULT = new OpExp(s1left, s1right, s1, OpExp.EEQ, s2); :}
+               | add_exp:s1 EQ add_exp:s2
+                 {: RESULT = new OpExp(s1left, s1right, s1, OpExp.EQ, s2); :}
                | add_exp:s
                  {: RESULT = s; :}
                ;
@@ -211,13 +253,20 @@ factor       ::= LPAREN exp:e RPAREN
                  {: RESULT = e; :}
                | NUM:n
                  {: RESULT = new IntExp(nleft, nright, n); :}
-               | ID:i
-                 {: RESULT = new VarExp(ileft, iright, VarExp.VOID, i); :}
+               | var:v
+                 {: RESULT = new VarExp(vleft, vright, v); :}
                | TRUTH:t
                  {: RESULT = new TruthExp(tleft, tright, t); :}
                | call:c
                  {: RESULT = c; :}
                ;
+
+var          ::= ID:i
+                {: RESULT = new SimpleVar(ileft, iright, i); :}
+               | ID:i1 LBRACK exp:e2 RBRACK
+                {: RESULT = new IndexVar(i1left, i1right, i1, e2); :}
+             ;
+
 call         ::= ID:i1 LPAREN args:a2 RPAREN
                 {: RESULT = new CallExp(i1left, i1right, i1, a2); :}
                 ;
@@ -225,6 +274,8 @@ call         ::= ID:i1 LPAREN args:a2 RPAREN
 args         ::= arg_list:a
                 {: RESULT = a; :}
                 ;
+method(1,2,3)
+
 arg_list     ::= /*empty*/
                  {: RESULT = new ExpList(new NilExp(0, 0), null); :}
                | arg_list:a1 COMMA exp:e2
