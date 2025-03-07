@@ -73,18 +73,18 @@ parser code {:
 
 terminal IF, THEN, ELSE, END, REPEAT, UNTIL, READ, WRITE, TYPE;
 terminal ASSIGN, RETURN, EQ, LT, GT, LEQ, GTE, NEQ, EEQ, PLUS, MINUS, AND, OR, MULOP;
-terminal LPAREN, RPAREN, LBRACK, RBRACK, LBRACE, RBRACE SEMI, COMMA, NOT;
+terminal LPAREN, RPAREN, LBRACK, RBRACK, LBRACE, RBRACE, SEMI, COMMA, NOT;
 terminal String ID, NUM, TRUTH;
 terminal ERROR;
 
 non terminal Exp program1;
 non terminal ExpList program, stmt_seq;
 non terminal ExpList args, arg_list;
-non terminal Exp exp_stmt, stmt, if_stmt, repeat_stmt, assign_stmt, write_stmt, call;
-non terminal Exp exp, obool_exp, abool_exp, ubool_exp, simple_exp, add_exp, term, signed_factor, factor;
+non terminal Exp exp_stmt, stmt, if_stmt, repeat_stmt, assign_stmt, call;
+non terminal Exp exp, obool_exp, abool_exp, ubool_exp, simple_exp, add_exp, term, signed_factor, factor, compound_stmt;
 non terminal Var var;
 non terminal VarDec var_dec;
-non terminal VarDecList var_dec_list;
+non terminal DecList local_dec;
 /* ----------------------------Grammar Section-------------------- */
 
 start with program;
@@ -96,14 +96,20 @@ program1     ::= exp:e
 program	     ::= stmt_seq:s
                  {: RESULT = s; :}
                ;
+compound_stmt ::= LBRACE local_dec:l var_dec:v1 RBRACE
+                 {: RESULT = new CompoundExp(lleft, lright, l, v1); :}
+                 ;
 
-local_dec    ::= local_dec:l var_dec:v
-                 {: ExpList t = s1;
-                     while( t.tail != null )
-                       t = t.tail;
-                     t.tail = new ExpList(s2, null);
-                     RESULT = s1;
+local_dec    ::= local_dec:l var_dec:v1
+                 {: DecList d = l;
+                    while( l.tail != null )
+                      l = l.tail;
+                    l.tail = new DecList(v1, null);
+                    RESULT = l;
                  :}
+               | /*empty*/
+                 {: RETURN = new DecList(NilExp, null); :}
+                 ;
 stmt_seq     ::= stmt_seq:s1 stmt:s2
                  {: ExpList t = s1;
                     while( t.tail != null )
@@ -123,8 +129,8 @@ stmt         ::= exp_stmt:e
                  {: RESULT = e; :}
                | assign_stmt:a
                  {: RESULT = a; :}
-               | var_dec_list:v
-                 {: RESULT = new ExpVarDecList(vleft, vright, v); :} //todo: fix
+               | compound_stmt:c
+                 {: RESULT = c; :} //todo: fix
                ;
 
 exp_stmt     ::= exp:e SEMI
@@ -133,30 +139,9 @@ exp_stmt     ::= exp:e SEMI
                  {: RESULT = new NilExp(0, 0); :}
                ;
 
-if_stmt      ::= IF:i exp:e THEN stmt_seq:s END
-                 {: RESULT = new IfExp(ileft, iright, e, s, new ExpList(new NilExp(0,0), null)); :}
-               | IF:i exp:e THEN stmt_seq:s1 ELSE stmt_seq:s2 END
-                 {: RESULT = new IfExp(ileft, iright, e, s1, s2); :}
-               ;
-
-repeat_stmt  ::= REPEAT:r stmt_seq:s UNTIL exp:e
-                 {: RESULT = new RepeatExp(rleft, rright, s, e); :}
-               ;
-
 assign_stmt  ::= ID:i EQ exp:e
                  {: RESULT = e; :}
                ; //Todo fix this
-
-var_dec_list ::= var_dec_list:v1 var_dec: v2
-                  {: VarDecList v = v1;
-                     while( v.tail != null )
-                       v = v.tail;
-                     v.tail = new VarDecList(v2, null);
-                     RESULT = v1;
-                  :}
-                | var_dec:v
-                  {: RESULT = new VarDecList(v, null); :}
-                ;
 
 var_dec  ::= TYPE:t ID:i
                  {:
@@ -184,10 +169,6 @@ var_dec  ::= TYPE:t ID:i
                     ty = NameTy.BOOL;
                  }
                  RESULT = new ArrayDec(tleft, tright, new NameTy(tleft, tright, ty), i, Integer.parseInt(n)); :}
-               ;
-
-write_stmt   ::= WRITE:w exp:e
-                 {: RESULT = new WriteExp(wleft, wright, e); :}
                ;
 
 exp           ::= obool_exp: e
@@ -274,7 +255,6 @@ call         ::= ID:i1 LPAREN args:a2 RPAREN
 args         ::= arg_list:a
                 {: RESULT = a; :}
                 ;
-method(1,2,3)
 
 arg_list     ::= /*empty*/
                  {: RESULT = new ExpList(new NilExp(0, 0), null); :}

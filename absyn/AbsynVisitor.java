@@ -48,4 +48,6 @@ public interface AbsynVisitor {
 
   public void visit ( ExpVarDecList dec, int level);
 
+  public void visit ( CompoundExp dec, int level);
+
 }
