@@ -3,9 +3,8 @@ package absyn;
 public class ArgsExp extends Exp {
     public ArgList args;
 
-    public ArgsExp(int row, int col, ArgList args) {
-        this.row = row;  // Position info from CUP
-        this.col = col;
+    public ArgsExp( int pos, ArgList args ){
+        this.pos = pos;  // Position info from CUP
         this.args = args;
     }
 

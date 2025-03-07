@@ -5,9 +5,9 @@ public class NameTy extends Absyn {
     public static final int INT = 1;
     public static final int BOOL = 2;
     public int type;
-    public NameTy(int row, int col, int type){
-        this.row = row;
-        this.col = col;
+    public NameTy( int pos, int type){
+        this.pos = pos;
+        this.pos = pos;
         this.type = type;
     }
 

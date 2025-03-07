@@ -4,9 +4,8 @@ public class VarExp extends Exp {
   public String name;
   public Var var;
 
-  public VarExp( int row, int col, Var var ) {
-    this.row = row;
-    this.col = col;
+  public VarExp( int pos, Var var ) {
+    this.pos = pos;
     this.var = var;
   }
 

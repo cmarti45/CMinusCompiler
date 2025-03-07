@@ -2,9 +2,7 @@ package absyn;
 
 public class ExpVarDecList extends Exp{
     public VarDecList dec;
-    public ExpVarDecList(int row, int col, VarDecList dec){
-        this.row = row;
-        this.col = col;
+    public ExpVarDecList(VarDecList dec){
         this.dec=dec;
     }
     public void accept( AbsynVisitor visitor, int level ) {

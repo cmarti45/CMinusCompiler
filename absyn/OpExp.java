@@ -14,24 +14,17 @@ public class OpExp extends Exp {
   public final static int EEQ = 10;
   public final static int NEQ = 11;
   public final static int NOT = 12;
+  public final static int AND = 13;
+  public final static int OR = 14;
 
   public Exp left;
   public int op;
   public Exp right;
 
-  public OpExp( int row, int col, Exp left, int op, Exp right ) {
-    this.row = row;
-    this.col = col;
+  public OpExp( int pos, Exp left, int op, Exp right ) {
+    this.pos = pos;
     this.left = left;
     this.op = op;
-    this.right = right;
-  }
-
-  public OpExp( int row, int col, Exp left, Object op, Exp right ) {
-    this.row = row;
-    this.col = col;
-    this.left = left;
-    this.op = op.equals("*") ? TIMES : OVER;
     this.right = right;
   }
 

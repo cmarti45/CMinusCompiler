@@ -6,11 +6,25 @@
 
 /* ----------------------Preliminary Declarations Section--------------------*/
 
-import absyn.*;
+import absyn.*;import java.lang.Object;
 
 /* Parser code to change the way the parser reports errors (include
    line and column number of the error). */
 parser code {:
+        public class Symbol extends java.lang.Object {
+            int pos;
+            int parse_state;
+            int sym;
+            Object value;
+
+            public Symbol(int pos, int parse_state, int sym, Object value){
+               this.pos = pos;
+               this.parse_state = parse_state;
+               this.sym = sym;
+               this.value = value;
+            }
+        }
+
 
     /* Change the method report_error so it will display the line and
        column of where the error occurred in the input as well as the
@@ -23,24 +37,23 @@ parser code {:
 
         /* Check if the information passed to the method is the same
            type as the type java_cup.runtime.Symbol. */
-        if (info instanceof java_cup.runtime.Symbol) {
-            /* Declare a java_cup.runtime.Symbol object 's' with the
+        if (info instanceof Symbol) {
+            /* Declare a Symbol object 's' with the
                information in the object info that is being typecasted
-               as a java_cup.runtime.Symbol object. */
-            java_cup.runtime.Symbol s = ((java_cup.runtime.Symbol) info);
+               as a Symbol object. */
+            Symbol s = ((Symbol) info);
 
             /* Check if the line number in the input is greater or
                equal to zero. */
-            if (s.left >= 0) {
+            if (s.pos >= 0) {
                 /* Add to the end of the StringBuffer error message
                    the line number of the error in the input. */
-                m.append(" in line "+(s.left+1));
+                //m.append(" in line "+(s.right+1));// Todo add line number
                 /* Check if the column number in the input is greater
                    or equal to zero. */
-                if (s.right >= 0)
                     /* Add to the end of the StringBuffer error message
                        the column number of the error in the input. */
-                    m.append(", column "+(s.right+1));
+                    m.append(", column "+(s.pos+1));
             }
         }
 
@@ -71,161 +84,173 @@ parser code {:
 
 /* ------------Declaration of Terminals and Non Terminals Section----------- */
 
-terminal IF, THEN, ELSE, END, REPEAT, UNTIL, READ, WRITE, TYPE;
-terminal ASSIGN, RETURN, EQ, LT, GT, LEQ, GTE, NEQ, EEQ, PLUS, MINUS, AND, OR, MULOP;
+terminal IF, THEN, ELSE, END, REPEAT, UNTIL, READ, WRITE, INT, BOOL, VOID;
+terminal ASSIGN, RETURN, EQ, LT, GT, LEQ, GTE, NEQ, EEQ, PLUS, MINUS, AND, OR;
 terminal LPAREN, RPAREN, LBRACK, RBRACK, LBRACE, RBRACE, SEMI, COMMA, NOT;
-terminal String ID, NUM, TRUTH;
+terminal String ID, NUM, TIMES, OVER, TYPE, TRUTH;
 terminal ERROR;
+terminal NameTy type;
 
 non terminal Exp program1;
-non terminal ExpList program, stmt_seq;
+non terminal DecList program;
+non terminal ExpList stmt_seq;
 non terminal ExpList args, arg_list;
-non terminal Exp exp_stmt, stmt, if_stmt, repeat_stmt, assign_stmt, call;
+non terminal Exp exp_stmt, stmt, if_stmt, write_stmt, assign_stmt, call;
 non terminal Exp exp, obool_exp, abool_exp, ubool_exp, simple_exp, add_exp, term, signed_factor, factor, compound_stmt;
 non terminal Var var;
+non terminal Dec dec;
 non terminal VarDec var_dec;
-non terminal DecList local_dec;
+non terminal VarDecList local_dec;
+non terminal DecList dec_list;
+non terminal FunctionDec fun_dec;
 /* ----------------------------Grammar Section-------------------- */
 
-start with program;
+start with exp;
 
 program1     ::= exp:e
                  {: RESULT = e; :}
                ;
 
-program	     ::= stmt_seq:s
+program	     ::= dec_list:s
                  {: RESULT = s; :}
                ;
-compound_stmt ::= LBRACE local_dec:l var_dec:v1 RBRACE
-                 {: RESULT = new CompoundExp(lleft, lright, l, v1); :}
-                 ;
 
-local_dec    ::= local_dec:l var_dec:v1
-                 {: DecList d = l;
+dec_list    ::= dec_list:d1 dec:d2
+                 {:
+                    DecList l = d1;
                     while( l.tail != null )
                       l = l.tail;
-                    l.tail = new DecList(v1, null);
-                    RESULT = l;
+                    l.tail = new DecList(d2, null);
+                    RESULT = d1;
                  :}
-               | /*empty*/
-                 {: RETURN = new DecList(NilExp, null); :}
+               | dec:d
+                 {: RESULT = new DecList(d, null); :}
+               ;
+
+
+dec         ::= var_dec:v
+              {: RESULT = v; :}
+             | fun_dec:f
+              {: RESULT = f; :}
+            ;
+
+fun_dec       ::= type:t ID:i LPAREN arg_list:a RPAREN compound_stmt:c
+                {: RESULT = new FunctionDec(tleft, t, i, null, c); :}
+               ;
+
+compound_stmt ::= LBRACE local_dec:l stmt_seq:s RBRACE
+                  {: RESULT = new CompoundExp(lleft, l, s); :}
+                ;
+
+local_dec    ::= /*empty*/
+                 {: RESULT = new VarDecList(null, null); :}
+                 | local_dec:d var_dec:v1
+                 {: VarDecList l = d;
+                    if (l.head == null){
+                      l.head = v1;
+                    } else {
+                        while( l.tail != null )
+                          l = l.tail;
+                        l.tail = new VarDecList(v1, null);
+                    }
+                    RESULT = d;
+                 :}
                  ;
+
 stmt_seq     ::= stmt_seq:s1 stmt:s2
                  {: ExpList t = s1;
-                    while( t.tail != null )
-                      t = t.tail;
-                    t.tail = new ExpList(s2, null);
+                    if (t.head == null) {
+                      t.head = s2;
+                    } else {
+                        while( t.tail != null )
+                          t = t.tail;
+                        t.tail = new ExpList(s2, null);
+                    }
                     RESULT = s1;
                  :}
-               | stmt:s
-                 {: RESULT = new ExpList(s, null); :}
-               | error SEMI stmt:s
-                 {: parser.report_error("invalid", null);
-                    RESULT = new ExpList(s, null);
-                 :}
+                 | /*empty*/
+                 {: RESULT = new ExpList(null, null); :}
                ;
-
-stmt         ::= exp_stmt:e
+stmt         ::=  exp_stmt:e
                  {: RESULT = e; :}
-               | assign_stmt:a
-                 {: RESULT = a; :}
                | compound_stmt:c
                  {: RESULT = c; :} //todo: fix
+               | if_stmt:i
+                 {: RESULT = i; :}
+               | assign_stmt:a
+                 {: RESULT = a; :}
+               | write_stmt:w
+                 {: RESULT = w; :}
                ;
-
 exp_stmt     ::= exp:e SEMI
                  {: RESULT = e; :}
                | SEMI
-                 {: RESULT = new NilExp(0, 0); :}
+                 {: RESULT = new NilExp(0); :}
                ;
 
-assign_stmt  ::= ID:i EQ exp:e
-                 {: RESULT = e; :}
-               ; //Todo fix this
-
-var_dec  ::= TYPE:t ID:i
-                 {:
-                 int ty = 0;
-                 if (t.toString().equals("void")){
-                    ty = NameTy.VOID;
-                 }
-                 if (t.toString().equals("int")){
-                    ty = NameTy.INT;
-                 }
-                 if (t.toString().equals("bool")){
-                    ty = NameTy.BOOL;
-                 }
-                 RESULT = new SimpleDec(tleft, tright, new NameTy(tleft, tright, ty), i); :}
-             | TYPE:t ID:i LBRACK NUM:n RBRACK
-                 {:
-                 int ty = 0;
-                 if (t.toString() == "void"){
-                    ty = NameTy.VOID;
-                 }
-                 if (t.toString() == "int"){
-                    ty = NameTy.INT;
-                 }
-                 if (t.toString() == "bool"){
-                    ty = NameTy.BOOL;
-                 }
-                 RESULT = new ArrayDec(tleft, tright, new NameTy(tleft, tright, ty), i, Integer.parseInt(n)); :}
-               ;
+var_dec  ::= type:t ID:i
+               {: RESULT = new SimpleDec(tleft, t, i); :}
+             | type:t ID:i LBRACK NUM:n RBRACK
+               {: RESULT = new ArrayDec(tleft, t, i, Integer.parseInt(n)); :}
+             ;
 
 exp           ::= obool_exp: e
                 {: RESULT = e; :}
               ;
 
 obool_exp      ::= obool_exp:o1 OR abool_exp:a2
-                 {: RESULT = new BoolExp(o1left, o1right, o1, BoolExp.OR, a2); :}
+                 {: RESULT = new OpExp(o1left, o1, OpExp.OR, a2); :}
                |   abool_exp:a
                  {: RESULT = a; :}
                ;
 
 abool_exp      ::= abool_exp:a AND ubool_exp:u
-                 {: RESULT = new BoolExp(aleft, aright, a, BoolExp.AND, u); :}
+                 {: RESULT = new OpExp(aleft, a, OpExp.AND, u); :}
                |   ubool_exp:u
                  {: RESULT = u; :}
                ;
 
 ubool_exp      ::= NOT ubool_exp:u
-                 {: RESULT = new OpExp(uleft, uright, new NilExp(0,0), OpExp.NOT, u); :}
+                 {: RESULT = new OpExp(uleft, new NilExp(0), OpExp.NOT, u); :}
                | simple_exp:s
                  {: RESULT = s; :}
                ;
 
 simple_exp          ::= add_exp:s1 LT add_exp:s2
-                 {: RESULT = new OpExp(s1left, s1right, s1, OpExp.LT, s2); :}
+                 {: RESULT = new OpExp(s1left, s1, OpExp.LT, s2); :}
                | add_exp:s1 GT add_exp:s2
-                 {: RESULT = new OpExp(s1left, s1right, s1, OpExp.GT, s2); :}
+                 {: RESULT = new OpExp(s1left, s1, OpExp.GT, s2); :}
                | add_exp:s1 NEQ add_exp:s2
-                 {: RESULT = new OpExp(s1left, s1right, s1, OpExp.NEQ, s2); :}
+                 {: RESULT = new OpExp(s1left, s1, OpExp.NEQ, s2); :}
                | add_exp:s1 GTE add_exp:s2
-                 {: RESULT = new OpExp(s1left, s1right, s1, OpExp.GTE, s2); :}
+                 {: RESULT = new OpExp(s1left, s1, OpExp.GTE, s2); :}
                | add_exp:s1 LEQ add_exp:s2
-                 {: RESULT = new OpExp(s1left, s1right, s1, OpExp.LEQ, s2); :}
+                 {: RESULT = new OpExp(s1left, s1, OpExp.LEQ, s2); :}
                | add_exp:s1 EEQ add_exp:s2
-                 {: RESULT = new OpExp(s1left, s1right, s1, OpExp.EEQ, s2); :}
+                 {: RESULT = new OpExp(s1left, s1, OpExp.EEQ, s2); :}
                | add_exp:s1 EQ add_exp:s2
-                 {: RESULT = new OpExp(s1left, s1right, s1, OpExp.EQ, s2); :}
+                 {: RESULT = new OpExp(s1left, s1, OpExp.EQ, s2); :}
                | add_exp:s
                  {: RESULT = s; :}
                ;
 add_exp   ::= add_exp:s PLUS term:t
-                 {: RESULT = new OpExp(sleft, sright, s, OpExp.PLUS, t); :}
+                 {: RESULT = new OpExp(sleft, s, OpExp.PLUS, t); :}
                | add_exp:s MINUS term:t
-                 {: RESULT = new OpExp(sleft, sright, s, OpExp.MINUS, t); :}
+                 {: RESULT = new OpExp(sleft, s, OpExp.MINUS, t); :}
                | term:t
                  {: RESULT = t; :}
                ;
 
-term         ::= term:t MULOP:m signed_factor:f
-                 {: RESULT = new OpExp(tleft, tright, t, m, f); :}
-               | signed_factor:f
-                 {: RESULT = f; :}
+term         ::= term:t TIMES signed_factor:f
+                  {: RESULT = new OpExp(tleft, t, OpExp.TIMES, f); :}
+                | term:t OVER signed_factor:f
+                  {: RESULT = new OpExp(tleft, t, OpExp.OVER, f); :}
+                | signed_factor:f
+                  {: RESULT = f; :}
                ;
 
 signed_factor ::= MINUS:m signed_factor:f
-                  {: RESULT = new OpExp(mleft, mright, new NilExp(0,0), OpExp.UMINUS, f); :}
+                  {: RESULT = new OpExp(mleft, new NilExp(0), OpExp.UMINUS, f); :}
                |  factor:f
                   {: RESULT = f; :}
                ;
@@ -233,23 +258,23 @@ signed_factor ::= MINUS:m signed_factor:f
 factor       ::= LPAREN exp:e RPAREN
                  {: RESULT = e; :}
                | NUM:n
-                 {: RESULT = new IntExp(nleft, nright, n); :}
+                 {: RESULT = new IntExp(nleft, n); :}
                | var:v
-                 {: RESULT = new VarExp(vleft, vright, v); :}
+                 {: RESULT = new VarExp(vleft, v); :}
                | TRUTH:t
-                 {: RESULT = new TruthExp(tleft, tright, t); :}
+                 {: RESULT = new BoolExp(tleft, t); :}
                | call:c
                  {: RESULT = c; :}
                ;
 
 var          ::= ID:i
-                {: RESULT = new SimpleVar(ileft, iright, i); :}
+                {: RESULT = new SimpleVar(ileft, i); :}
                | ID:i1 LBRACK exp:e2 RBRACK
-                {: RESULT = new IndexVar(i1left, i1right, i1, e2); :}
+                {: RESULT = new IndexVar(i1left, i1, e2); :}
              ;
 
 call         ::= ID:i1 LPAREN args:a2 RPAREN
-                {: RESULT = new CallExp(i1left, i1right, i1, a2); :}
+                {: RESULT = new CallExp(i1left, i1, a2); :}
                 ;
 
 args         ::= arg_list:a
@@ -257,12 +282,12 @@ args         ::= arg_list:a
                 ;
 
 arg_list     ::= /*empty*/
-                 {: RESULT = new ExpList(new NilExp(0, 0), null); :}
+                 {: RESULT = new ExpList(new NilExp(0), null); :}
                | arg_list:a1 COMMA exp:e2
                  {: ExpList t = a1;
                     while( t.tail != null )
                       t = t.tail;
-                    t.tail = new ExpList(e2, null);
+                    t.tail =  new ExpList(e2, null);
                     RESULT = a1;
                  :}
                | exp:e
@@ -272,3 +297,11 @@ arg_list     ::= /*empty*/
                     RESULT = new ExpList(e, null);
                  :}
                ;
+
+type       ::= VOID:t
+              {: RESULT = new NameTy(tleft, NameTy.VOID); :}
+             | INT:t
+              {: RESULT = new NameTy(tleft, NameTy.INT); :}
+             | BOOL:t
+              {: RESULT = new NameTy(tleft, NameTy.BOOL); :}
+            ;

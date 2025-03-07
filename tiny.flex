@@ -9,7 +9,7 @@
    
 /* --------------------------Usercode Section------------------------ */
    
-import java_cup.runtime.*;
+import absyn.VarExp;import java_cup.runtime.*;import absyn.Symbol;
       
 %%
    
@@ -20,6 +20,7 @@ import java_cup.runtime.*;
    Will write the code to the file Lexer.java. 
 */
 %class Lexer
+%type absyn.Symbol
 
 %eofval{
   return null;
@@ -46,18 +47,18 @@ import java_cup.runtime.*;
   Here you declare member variables and functions that are used inside
   scanner actions.  
 */
-%{   
+%{
     /* To create a new java_cup.runtime.Symbol with information about
        the current token, the token will have no value in this
        case. */
     private Symbol symbol(int type) {
-        return new Symbol(type, yyline, yycolumn);
+        return new Symbol(type, yycolumn);
     }
     
     /* Also creates a new java_cup.runtime.Symbol with information
        about the current token, but this object has a value. */
     private Symbol symbol(int type, Object value) {
-        return new Symbol(type, yyline, yycolumn, value);
+        return new Symbol(type, yycolumn, value);
     }
 %}
    
@@ -70,7 +71,6 @@ import java_cup.runtime.*;
 */
 /* Truth can be false or true */
 Truth = false|true
-MulOp = \*|\/
 TypeSpecifier = bool|int|void
    
 /* A line terminator is a \r (carriage return), \n (line feed), or
@@ -132,8 +132,11 @@ identifier = {letter}+
 \|\|                {return symbol(sym.OR); }
 {number}           { return symbol(sym.NUM, yytext()); }
 {Truth}            { return symbol(sym.TRUTH, yytext()); }
-{MulOp}            { return symbol(sym.MULOP, yytext()); }
-{TypeSpecifier}    { return symbol(sym.TYPE, yytext()); }
+"*"                { return symbol(sym.TIMES); }
+"/"                { return symbol(sym.OVER); }
+"int"              { return symbol(sym.INT); }
+"void"              { return symbol(sym.VOID); }
+"bool"              { return symbol(sym.BOOL); }
 {identifier}       { return symbol(sym.ID, yytext()); }
 {WhiteSpace}+      { /* skip whitespace */ }   
 "{"[^\}]*"}"       { /* skip comments */ }

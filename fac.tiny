@@ -1,9 +1,1 @@
-a = x && ~(y || z);
-int x;
-int fac;
-x = input(x, y*3);
-fac = 1;
-fac = fac * x;
-x = x - 1;
-
-output(fac * WHAT(2||3));
+x + 2 / 3 && 4 || 5

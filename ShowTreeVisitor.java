@@ -1,8 +1,5 @@
 import absyn.*;
 
-import javax.xml.transform.Source;
-import java.sql.SQLOutput;
-
 public class ShowTreeVisitor implements AbsynVisitor {
 
   final static int SPACES = 4;
@@ -119,29 +116,9 @@ public class ShowTreeVisitor implements AbsynVisitor {
     System.out.println( "IntExp: " + exp.value );
   }
 
-  public void visit( TruthExp exp, int level ) {
+  public void visit(BoolExp exp, int level ) {
     indent( level );
     System.out.println( "TruthExp: " + exp.value );
-  }
-
-  public void visit( BoolExp exp, int level ) {
-    indent( level );
-    System.out.print( "BoolExp:" );
-    switch( exp.op ) {
-      case BoolExp.AND:
-        System.out.println( " && " );
-        break;
-      case BoolExp.OR:
-        System.out.println( " || " );
-        break;
-      default:
-        System.out.println( "Unrecognized operator at line " + exp.row + " and column " + exp.col);
-    }
-    level++;
-    if (exp.left != null)
-      exp.left.accept( this, level );
-    if (exp.right != null)
-      exp.right.accept( this, level );
   }
 
   public void visit( OpExp exp, int level ) {
@@ -187,8 +164,14 @@ public class ShowTreeVisitor implements AbsynVisitor {
       case OpExp.NOT:
         System.out.println( " ~ " );
         break;
+      case OpExp.AND:
+        System.out.println( " && " );
+        break;
+      case OpExp.OR:
+        System.out.println( " || " );
+        break;
       default:
-        System.out.println( "Unrecognized operator at line " + exp.row + " and column " + exp.col);
+        System.out.println( "Unrecognized operator at line " + exp.pos);
     }
     level++;
     if (exp.left != null)
@@ -236,6 +219,33 @@ public class ShowTreeVisitor implements AbsynVisitor {
     System.out.println( "WriteExp:" );
     if (exp.output != null)
       exp.output.accept( this, ++level );
+  }
+
+  public void visit(CompoundExp exp, int level){
+    VarDecList vars = exp.vars;
+    ExpList exps = exp.exps;
+    indent (level );
+    System.out.println( "CompoundExp: ");
+    level++;
+    while( vars != null ) {
+      vars.head.accept( this, level );
+      vars = vars.tail;
+    }
+    while( exps != null ) {
+      exps.head.accept( this, level );
+      exps = exps.tail;
+    }
+  }
+
+  public void visit(FunctionDec dec, int level){
+    indent(level);
+    System.out.println( "FunctionDec: ");
+    level++;
+    dec.result.accept(this, level);
+    indent(level);
+    System.out.println( "func: " + dec.func);
+    //todo: print paramlist
+    dec.body.accept(this, level);
   }
 
 }

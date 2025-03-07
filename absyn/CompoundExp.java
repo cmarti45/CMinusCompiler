@@ -1,9 +1,10 @@
 package absyn;
 
-public class CompoundExp extends Absyn {
+public class CompoundExp extends Exp {
     public VarDecList vars;
     public ExpList exps;
-    public CompoundExp(int row, int col, VarDecList vars, ExpList exps){
+    public CompoundExp( int pos, VarDecList vars, ExpList exps ){
+        this.pos = pos;
         this.vars = vars;
         this.exps = exps;
     }

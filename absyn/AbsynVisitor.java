@@ -14,13 +14,11 @@ public interface AbsynVisitor {
 
   public void visit(NilExp exp, int level );
 
-  public void visit(BoolExp exp, int level );
-
   public void visit( IfExp exp, int level );
 
   public void visit( IntExp exp, int level );
 
-  public void visit( TruthExp exp, int level );
+  public void visit(BoolExp exp, int level );
 
   public void visit( OpExp exp, int level );
 
@@ -49,5 +47,7 @@ public interface AbsynVisitor {
   public void visit ( ExpVarDecList dec, int level);
 
   public void visit ( CompoundExp dec, int level);
+
+  public void visit ( FunctionDec dec, int level);
 
 }
