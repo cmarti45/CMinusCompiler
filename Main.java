@@ -20,25 +20,27 @@ class Main {
     /* Start the parser */
     try {
       Lexer lexer = new Lexer(new FileReader(argv[0]));
+            if (argv.length > 1 && argv[1].equals("S")) {
+                Scanner scanner = new Scanner(lexer);
+                Symbol tok = null;
+                while ((tok = scanner.getNextToken()) != null) {
+                    System.out.print(sym.terminalNames[tok.sym]);
+                    System.out.print("(" + tok.sym + ")");
+                    if (tok.value != null)
+                        System.out.print("(" + tok.value + ")");
+                    System.out.println();
+                }
+            } else {
 
-            Scanner scanner = new Scanner(lexer);
-            Symbol tok = null;
-            while( (tok=scanner.getNextToken()) != null ) {
-                System.out.print(sym.terminalNames[tok.sym]);
-                System.out.print("(" + tok.sym + ")");
-                if (tok.value != null)
-                    System.out.print("(" + tok.value + ")");
-                System.out.println();
+                lexer.yyreset(new FileReader(argv[0]));
+                parser p = new parser(lexer);
+                Absyn result = (Absyn) (p.parse().value);
+                if (SHOW_TREE && result != null) {
+                    System.out.println("The abstract syntax tree is:");
+                    AbsynVisitor visitor = new ShowTreeVisitor();
+                    result.accept(visitor, 0);
+                }
             }
-
-        lexer.yyreset(new FileReader(argv[0]));
-        parser p = new parser(lexer);
-      Absyn result = (Absyn)(p.parse().value);      
-      if (SHOW_TREE && result != null) {
-         System.out.println("The abstract syntax tree is:");
-         AbsynVisitor visitor = new ShowTreeVisitor();
-         result.accept(visitor, 0); 
-      }
     } catch (Exception e) {
       /* do cleanup here -- possibly rethrow e */
       e.printStackTrace();

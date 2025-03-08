@@ -101,11 +101,6 @@ identifier = {letter}+
 "then"              { return symbol(sym.THEN); }
 "else"              { return symbol(sym.ELSE); }
 "end"               { return symbol(sym.END); }
-"repeat"            { return symbol(sym.REPEAT); }
-"until"             { return symbol(sym.UNTIL); }
-"read"              { return symbol(sym.READ); }
-"write"             { return symbol(sym.WRITE); }
-":="                { return symbol(sym.ASSIGN); }
 \>\=                { return symbol(sym.GTE); }
 \<\=                { return symbol(sym.LEQ); }
 "<"                 { return symbol(sym.LT); }
@@ -134,6 +129,7 @@ identifier = {letter}+
 "int"               { return symbol(sym.INT); }
 "void"              { return symbol(sym.VOID); }
 "bool"              { return symbol(sym.BOOL); }
+"while"              { return symbol(sym.WHILE); }
 {identifier}        { return symbol(sym.ID, yytext()); }
 {WhiteSpace}+       { /* skip whitespace */ }
 \/[*]([^*]|([*][^/]))*[*]+\/        { /* skip comments */ }

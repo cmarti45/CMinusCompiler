@@ -10,6 +10,7 @@ public class FunctionDec extends Dec {
         this.result = result;
         this.func = func;
         this.body = body;
+        this.params = params;
     }
 
     public void accept( AbsynVisitor visitor, int level ) {

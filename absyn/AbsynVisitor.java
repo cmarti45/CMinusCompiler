@@ -44,10 +44,12 @@ public interface AbsynVisitor {
 
   public void visit ( NameTy ty, int level);
 
-  public void visit ( ExpVarDecList dec, int level);
-
   public void visit ( CompoundExp dec, int level);
 
   public void visit ( FunctionDec dec, int level);
+
+  public void visit ( WhileExp exp, int level);
+
+  public void visit ( ReturnExp exp, int level);
 
 }

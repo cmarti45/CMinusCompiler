@@ -1,3 +1,15 @@
-int main(x,y){int x;int y;int z;x = 1;}
 
-int exp(x,y){int x;int y;int z;x = 1;}
+int main(bool x,  bool y){int x;int y;int z;x = 1;}
+int main(bool x,  bool y);
+
+int exp( int x ,int y ){int x;int y;int z;x = 1;
+if (x==3){
+open(abc);
+}
+
+run(1+2, 3 , 4);
+wow();
+while(x>0) {
+iter();
+}
+return;}

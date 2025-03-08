@@ -11,6 +11,15 @@ public class NameTy extends Absyn {
         this.type = type;
     }
 
+    public String toString(){
+        return switch (this.type) {
+            case VOID -> "VOID";
+            case INT -> "INT";
+            case BOOL -> "BOOL";
+            default -> "INVALID TYPE";
+        };
+    }
+
     public void accept( AbsynVisitor visitor, int level ) {
         visitor.visit( this, level );
     }
