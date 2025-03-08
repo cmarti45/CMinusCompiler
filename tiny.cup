@@ -99,10 +99,12 @@ program1     ::= exp:e
                  {: RESULT = e; :}
                ;
 
+//(1) <program> -> <declaration-list>
 program	     ::= dec_list:s
                  {: RESULT = s; :}
                ;
 
+//(2) <declaration-list> -> <declaration-list> <declaration> | <declaration>
 dec_list    ::= dec_list:d1 dec:d2
                  {:
                     DecList l = d1;
@@ -115,7 +117,7 @@ dec_list    ::= dec_list:d1 dec:d2
                  {: RESULT = new DecList(d, null); :}
                ;
 
-
+//(3) <declaration> -> <var-declaration> | <fun-declaration> | <fun-prototype>
 dec         ::= var_dec:v
                  {: RESULT = v; :}
                | fun_dec:f1
@@ -124,6 +126,7 @@ dec         ::= var_dec:v
                  {: RESULT = f1; :}
             ;
 
+//(4) <var-declaration> -> <type-specifier> ID ; | <type-specifier> ID [ NUM ] ;
 fun_dec       ::= INT:i1 fun_dec_typ:f
                  {:  f.result = new NameTy(i1left, NameTy.INT);
                     RESULT = f; :}
@@ -133,28 +136,32 @@ fun_dec       ::= INT:i1 fun_dec_typ:f
                | VOID:i1 fun_dec_typ:f
                  {:  f.result = new NameTy(i1left, NameTy.VOID);
                     RESULT = f; :}
-
                ;
 fun_dec_typ   ::= ID:i LPAREN params:p RPAREN compound_stmt:c
                  {: ;
                     RESULT = new FunctionDec(ileft, null, i, p, c); :}
                ;
+
+//(6) <fun-declaration> -> <type-specifier> ID ( <params> ) <compound-stmt>
 fun_pro       ::= INT:i fun_pro_typ:f
                 {: f.result = new NameTy(ileft, NameTy.INT);
                  RESULT = f; :}
                  ;
 
+//(7) <fun-prototype> -> <type-specifier> ID ( <params> ) ;
 fun_pro_typ   ::= ID:i LPAREN params:p RPAREN SEMI
                  {: ;
                     RESULT = new FunctionDec(ileft, null, i, p, null); :}
                ;
 
+//(8) <params> -> <param-list> | void
 params        ::= param_list:p
                  {: RESULT = p; :}
                 | VOID
                  {: RESULT = new VarDecList(null,null); :}
                 ;
 
+//(9) <param-list> -> <param-list> , <param> | <param>
 param_list    ::= param_list:p1 COMMA param:p2
                  {: VarDecList l = p1;
                     while( l.tail != null )
@@ -166,6 +173,7 @@ param_list    ::= param_list:p1 COMMA param:p2
                   {: RESULT = new VarDecList(p,null); :}
                  ;
 
+//(10) <param> -> <type-specifier> ID | <type-specifier> ID [ ]
 param         ::= INT:i param_typ:p
                  {: p.type = new NameTy(ileft, NameTy.INT);
                     p.pos = ileft;
@@ -179,17 +187,18 @@ param         ::= INT:i param_typ:p
                     p.pos = ileft;
                    RESULT = p; :}
                ;
-
 param_typ     ::= ID:i
                  {: RESULT = new SimpleDec(0, null, i); :}
                | ID:i LBRACK RBRACK
                  {: RESULT = new ArrayDec(0, null, i, 0); :}
                 ;
 
+//(11) <compound-stmt> -> { <local-declarations> <statement-list> }
 compound_stmt ::= LBRACE local_dec:l stmt_seq:s RBRACE
                  {: RESULT = new CompoundExp(lleft, l, s); :}
                 ;
 
+//(12) <local-declarations> -> <local-declarations> <var-declaration> |
 local_dec    ::= /*empty*/
                  {: RESULT = new VarDecList(null, null); :}
                | local_dec:d var_dec:v1
@@ -205,6 +214,7 @@ local_dec    ::= /*empty*/
                  :}
                  ;
 
+//(13) <statement-list> -> <statement-list> <statement> |
 stmt_seq     ::= stmt_seq:s1 stmt:s2
                  {: ExpList t = s1;
                     if (t.head == null) {
@@ -219,7 +229,7 @@ stmt_seq     ::= stmt_seq:s1 stmt:s2
                | /*empty*/
                  {: RESULT = new ExpList(null, null); :}
                ;
-
+//(14) <statement> -> <expression-stmt> | <compound-stmt> | <selection-stmt> | <iteration-stmt> | <return-stmt>
 stmt         ::=  exp_stmt:e
                  {: RESULT = e; :}
                | compound_stmt:c
@@ -232,12 +242,12 @@ stmt         ::=  exp_stmt:e
                  {: RESULT = r; :}
                ;
 
+//(15) <expression-stmt> -> <expression> ; | ;
 exp_stmt     ::= exp:e SEMI
                  {: RESULT = e; :}
                | SEMI
                  {: RESULT = new NilExp(0); :}
                ;
-
 
 var_dec      ::= INT:t var_dec_typ:v
                  {: v.type = new NameTy(tleft, NameTy.INT);
@@ -248,53 +258,67 @@ var_dec      ::= INT:t var_dec_typ:v
                     v.pos = tleft;
                    RESULT = v; :}
                  ;
-
 var_dec_typ  ::= ID:i SEMI
                  {: RESULT = new SimpleDec(0, null, i); :}
                | ID:i LBRACK NUM:n RBRACK SEMI
                  {: RESULT = new ArrayDec(0, null, i, Integer.parseInt(n)); :}
                ;
 
+//(16) <selection-stmt> -> if ( <expression> ) <statement> | if ( <expression> ) <statement> else <statement>
 select_stmt ::= IF:i LPAREN exp:e RPAREN stmt:s
                  {: RESULT = new IfExp(ileft, e, s, new NilExp(0)); :}
                 | IF:i LPAREN exp:e RPAREN stmt:s1 ELSE stmt:s2
                  {: RESULT = new IfExp(ileft, e, s1, s2); :}
                ;
 
+//(17) <iteration-stmt> -> while ( <expression> ) <statement>
 iter_stmt  ::= WHILE:w LPAREN exp:e RPAREN stmt:s
                  {: RESULT  = new WhileExp(wleft, e, s); :}
               ;
 
+//(18) <return-stmt> -> return <expression> ; | return ;
 return_stmt ::= RETURN:r exp:e SEMI
                  {: RESULT = new ReturnExp(rleft, e); :}
               | RETURN:r SEMI
                  {: RESULT = new ReturnExp(rleft, new NilExp(0)); :}
               ;
 
+//(19) <expression> -> <var> = <expression> | <obool-expression>
 exp           ::= var:v1 EQ exp:e2
                  {: RESULT =  new AssignExp(v1left, v1, e2); :}
                | obool_exp: e
                  {: RESULT = e; :}
               ;
 
+//(20) <var> -> ID | ID [ <expression> ]
+var          ::= ID:i
+                 {: RESULT = SimpleVar.var(ileft, i); :}
+               | ID:i1 LBRACK exp:e2 RBRACK
+                 {: RESULT = IndexVar.var(i1left, i1, e2); :}
+             ;
+
+//(21) <obool-expression> -> <obool-expression> || <abool-expression> | <abool-expression>
 obool_exp      ::= obool_exp:o1 OR abool_exp:a2
                  {: RESULT = new OpExp(o1left, o1, OpExp.OR, a2); :}
                |   abool_exp:a
                  {: RESULT = a; :}
                ;
 
+//(22) <abool-expression> -> <abool-expression> && <ubool-expression> | <ubool-expression>
 abool_exp      ::= abool_exp:a AND ubool_exp:u
                  {: RESULT = new OpExp(aleft, a, OpExp.AND, u); :}
                |   ubool_exp:u
                  {: RESULT = u; :}
                ;
 
+//(23) <ubool-expression> -> ~ <ubool-expression> | <simple-expression>
 ubool_exp      ::= NOT ubool_exp:u
                  {: RESULT = new OpExp(uleft, new NilExp(0), OpExp.NOT, u); :}
                | simple_exp:s
                  {: RESULT = s; :}
                ;
 
+//(24) <simple-expression> -> <additive-expression> <relop> <additive-expression> | <additive-expression>
 simple_exp          ::= add_exp:s1 LT add_exp:s2
                  {: RESULT = new OpExp(s1left, s1, OpExp.LT, s2); :}
                | add_exp:s1 GT add_exp:s2
@@ -310,6 +334,8 @@ simple_exp          ::= add_exp:s1 LT add_exp:s2
                | add_exp:s
                  {: RESULT = s; :}
                ;
+
+//(26) <additive-expression> -> <additive-expression> <addop> <term> | <term>
 add_exp   ::= add_exp:s PLUS term:t
                  {: RESULT = new OpExp(sleft, s, OpExp.PLUS, t); :}
                | add_exp:s MINUS term:t
@@ -318,6 +344,7 @@ add_exp   ::= add_exp:s PLUS term:t
                  {: RESULT = t; :}
                ;
 
+//(28) <term> -> <term> <mulop> <signed-factor> | <signed-factor>
 term         ::= term:t TIMES signed_factor:f
                  {: RESULT = new OpExp(tleft, t, OpExp.TIMES, f); :}
                | term:t OVER signed_factor:f
@@ -326,12 +353,14 @@ term         ::= term:t TIMES signed_factor:f
                  {: RESULT = f; :}
                ;
 
+//(30) <signed-factor> -> - <signed-factor> | <factor>
 signed_factor ::= MINUS:m signed_factor:f
                  {: RESULT = new OpExp(mleft, new NilExp(0), OpExp.UMINUS, f); :}
                |  factor:f
                  {: RESULT = f; :}
                ;
 
+//(31) <factor> -> ( <expression> ) | <var> | <call> | NUM | TRUTH
 factor       ::= LPAREN exp:e RPAREN
                  {: RESULT = e; :}
                | NUM:n
@@ -344,22 +373,19 @@ factor       ::= LPAREN exp:e RPAREN
                  {: RESULT = c; :}
                ;
 
-var          ::= ID:i
-                 {: RESULT = SimpleVar.var(ileft, i); :}
-               | ID:i1 LBRACK exp:e2 RBRACK
-                 {: RESULT = IndexVar.var(i1left, i1, e2); :}
-             ;
-
+//(32) <call> -> ID ( <args> )
 call         ::= ID:i1 LPAREN args:a2 RPAREN
                  {: RESULT = new CallExp(i1left, i1, a2); :}
                 ;
 
+//(33) <args> -> <arg-list> |
 args         ::= arg_list:a
                  {: RESULT = a; :}
                 | /*empty*/
                  {: RESULT = new ExpList(new NilExp(0), null); :}
                 ;
 
+//(34) <arg-list> -> <arg-list> , <expression> | <expression>
 arg_list     ::= arg_list:a1 COMMA exp:e2
                  {: ExpList t = a1;
                     while( t.tail != null )
