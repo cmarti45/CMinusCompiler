@@ -9,7 +9,7 @@
    
 /* --------------------------Usercode Section------------------------ */
    
-import java_cup.runtime.*;import absyn.Symbol;
+import absyn.Symbol;
       
 %%
    
@@ -27,7 +27,6 @@ import java_cup.runtime.*;import absyn.Symbol;
   and the current column number with the variable yycolumn.
 */
 %line
-%column
     
 /* 
    Will switch to a CUP compatibility mode to interface with a CUP
@@ -48,13 +47,13 @@ import java_cup.runtime.*;import absyn.Symbol;
                the current token, the token will have no value in this
                case. */
             private Symbol symbol(int type) {
-                return new Symbol(type, yycolumn);
+                return new Symbol(type, yyline);
             }
 
             /* Also creates a new java_cup.runtime.Symbol with information
                about the current token, but this object has a value. */
             private Symbol symbol(int type, Object value) {
-                return new Symbol(type, yycolumn, value);
+                return new Symbol(type, yyline, value);
             }
 %}
    
@@ -67,7 +66,7 @@ import java_cup.runtime.*;import absyn.Symbol;
 */
 /* Truth can be false or true */
 Truth = false|true
-TypeSpecifier = bool|int|void
+Comment = \/\*([^*]|\*+[^*\/])*\*+\/
    
 /* A line terminator is a \r (carriage return), \n (line feed), or
    \r\n. */
@@ -98,9 +97,7 @@ identifier = {letter}+
 
 
 "if"                { return symbol(sym.IF); }
-"then"              { return symbol(sym.THEN); }
 "else"              { return symbol(sym.ELSE); }
-"end"               { return symbol(sym.END); }
 \>\=                { return symbol(sym.GTE); }
 \<\=                { return symbol(sym.LEQ); }
 "<"                 { return symbol(sym.LT); }
@@ -132,5 +129,5 @@ identifier = {letter}+
 "while"              { return symbol(sym.WHILE); }
 {identifier}        { return symbol(sym.ID, yytext()); }
 {WhiteSpace}+       { /* skip whitespace */ }
-\/[*]([^*]|([*][^/]))*[*]+\/        { /* skip comments */ }
+{Comment}           { /* skip comments */ }
 <<EOF>>             { return null; }

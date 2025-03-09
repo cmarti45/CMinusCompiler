@@ -25,9 +25,6 @@ class Main {
                 Symbol tok = null;
                 while ((tok = scanner.getNextToken()) != null) {
                     System.out.print(sym.terminalNames[tok.sym]);
-                    System.out.print("(" + tok.sym + ")");
-                    if (tok.value != null)
-                        System.out.print("(" + tok.value + ")");
                     System.out.println();
                 }
             } else {

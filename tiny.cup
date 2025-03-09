@@ -1,9 +1,3 @@
-/*
-  Created by: Fei Song
-  File Name: tiny.cup
-*/
-
-
 /* ----------------------Preliminary Declarations Section--------------------*/
 
 import absyn.*;import java.lang.Object;
@@ -71,12 +65,10 @@ parser code {:
 
 /* ------------Declaration of Terminals and Non Terminals Section----------- */
 
-terminal IF, THEN, ELSE, END, INT, BOOL, VOID;
+terminal IF, ELSE, INT, BOOL, VOID;
 terminal RETURN, EQ, LT, GT, LEQ, GTE, NEQ, EEQ, PLUS, MINUS, AND, OR;
 terminal LPAREN, RPAREN, LBRACK, RBRACK, LBRACE, RBRACE, SEMI, COMMA, NOT;
 terminal String ID, NUM, TIMES, OVER, TRUTH, WHILE;
-terminal ERROR;
-terminal NameTy type;
 
 non terminal Exp program1;
 non terminal DecList program;
@@ -127,6 +119,23 @@ dec         ::= var_dec:v
             ;
 
 //(4) <var-declaration> -> <type-specifier> ID ; | <type-specifier> ID [ NUM ] ;
+var_dec      ::= INT:t var_dec_typ:v
+                 {: v.type = new NameTy(tleft, NameTy.INT);
+                    v.pos = tleft;
+                   RESULT = v; :}
+                 | BOOL:t var_dec_typ:v
+                 {: v.type = new NameTy(tleft, NameTy.BOOL);
+                    v.pos = tleft;
+                   RESULT = v; :}
+                 ;
+var_dec_typ  ::= ID:i SEMI
+                 {: RESULT = new SimpleDec(0, null, i); :}
+               | ID:i LBRACK NUM:n RBRACK SEMI
+                 {: RESULT = new ArrayDec(0, null, i, Integer.parseInt(n)); :}
+               ;
+//(5) <type-specifier> -> bool | int | void
+
+//(6) <fun-declaration> -> <type-specifier> ID ( <params> ) <compound-stmt>
 fun_dec       ::= INT:i1 fun_dec_typ:f
                  {:  f.result = new NameTy(i1left, NameTy.INT);
                     RESULT = f; :}
@@ -142,10 +151,15 @@ fun_dec_typ   ::= ID:i LPAREN params:p RPAREN compound_stmt:c
                     RESULT = new FunctionDec(ileft, null, i, p, c); :}
                ;
 
-//(6) <fun-declaration> -> <type-specifier> ID ( <params> ) <compound-stmt>
 fun_pro       ::= INT:i fun_pro_typ:f
                 {: f.result = new NameTy(ileft, NameTy.INT);
-                 RESULT = f; :}
+                   RESULT = f; :}
+                | BOOL:i fun_pro_typ:f
+               {: f.result = new NameTy(ileft, NameTy.BOOL);
+                  RESULT = f; :}
+                | VOID:i fun_pro_typ:f
+               {: f.result = new NameTy(ileft, NameTy.VOID);
+                  RESULT = f; :}
                  ;
 
 //(7) <fun-prototype> -> <type-specifier> ID ( <params> ) ;
@@ -249,26 +263,11 @@ exp_stmt     ::= exp:e SEMI
                  {: RESULT = new NilExp(0); :}
                ;
 
-var_dec      ::= INT:t var_dec_typ:v
-                 {: v.type = new NameTy(tleft, NameTy.INT);
-                    v.pos = tleft;
-                   RESULT = v; :}
-                 | BOOL:t var_dec_typ:v
-                 {: v.type = new NameTy(tleft, NameTy.BOOL);
-                    v.pos = tleft;
-                   RESULT = v; :}
-                 ;
-var_dec_typ  ::= ID:i SEMI
-                 {: RESULT = new SimpleDec(0, null, i); :}
-               | ID:i LBRACK NUM:n RBRACK SEMI
-                 {: RESULT = new ArrayDec(0, null, i, Integer.parseInt(n)); :}
-               ;
-
 //(16) <selection-stmt> -> if ( <expression> ) <statement> | if ( <expression> ) <statement> else <statement>
-select_stmt ::= IF:i LPAREN exp:e RPAREN stmt:s
-                 {: RESULT = new IfExp(ileft, e, s, new NilExp(0)); :}
-                | IF:i LPAREN exp:e RPAREN stmt:s1 ELSE stmt:s2
+select_stmt ::= IF:i LPAREN exp:e RPAREN stmt:s1 ELSE stmt:s2
                  {: RESULT = new IfExp(ileft, e, s1, s2); :}
+                | IF:i LPAREN exp:e RPAREN stmt:s
+                 {: RESULT = new IfExp(ileft, e, s, new NilExp(0)); :}
                ;
 
 //(17) <iteration-stmt> -> while ( <expression> ) <statement>
@@ -288,6 +287,9 @@ exp           ::= var:v1 EQ exp:e2
                  {: RESULT =  new AssignExp(v1left, v1, e2); :}
                | obool_exp: e
                  {: RESULT = e; :}
+               | error:e
+                 {: parser.report_error("row " + eleft + "invalid expression", null);
+                    RESULT = new NilExp(0); :}
               ;
 
 //(20) <var> -> ID | ID [ <expression> ]
@@ -335,6 +337,8 @@ simple_exp          ::= add_exp:s1 LT add_exp:s2
                  {: RESULT = s; :}
                ;
 
+//(25) <relop> -> <= | < | > | >= | == | !=
+
 //(26) <additive-expression> -> <additive-expression> <addop> <term> | <term>
 add_exp   ::= add_exp:s PLUS term:t
                  {: RESULT = new OpExp(sleft, s, OpExp.PLUS, t); :}
@@ -344,6 +348,8 @@ add_exp   ::= add_exp:s PLUS term:t
                  {: RESULT = t; :}
                ;
 
+//(27) <addop> -> + | -
+
 //(28) <term> -> <term> <mulop> <signed-factor> | <signed-factor>
 term         ::= term:t TIMES signed_factor:f
                  {: RESULT = new OpExp(tleft, t, OpExp.TIMES, f); :}
@@ -352,6 +358,8 @@ term         ::= term:t TIMES signed_factor:f
                | signed_factor:f
                  {: RESULT = f; :}
                ;
+
+//(29) <mulop> -> * | /
 
 //(30) <signed-factor> -> - <signed-factor> | <factor>
 signed_factor ::= MINUS:m signed_factor:f
@@ -383,6 +391,10 @@ args         ::= arg_list:a
                  {: RESULT = a; :}
                 | /*empty*/
                  {: RESULT = new ExpList(new NilExp(0), null); :}
+                | arg_list:a COMMA
+                 {: parser.report_error(a.pos + "inval1231id", null);
+                    RESULT = a;
+                 :}
                 ;
 
 //(34) <arg-list> -> <arg-list> , <expression> | <expression>
@@ -396,7 +408,7 @@ arg_list     ::= arg_list:a1 COMMA exp:e2
                | exp:e
                  {: RESULT = new ExpList(e, null); :}
                | error COMMA exp:e
-                 {: parser.report_error("invalid", null);
+                 {: parser.report_error(eleft + "inval1231id", null);
                     RESULT = new ExpList(e, null);
                  :}
                ;
