@@ -1,6 +1,6 @@
 /* ----------------------Preliminary Declarations Section--------------------*/
 
-import absyn.*;import java.lang.Object;
+import absyn.*;
 
 /* Parser code to change the way the parser reports errors (include
    line and column number of the error). */
@@ -17,24 +17,24 @@ parser code {:
 
         /* Check if the information passed to the method is the same
            type as the type java_cup.runtime.Symbol. */
-        if (info instanceof Symbol) {
-            /* Declare a Symbol object 's' with the
+        if (info instanceof java_cup.runtime.Symbol) {
+            /* Declare a java_cup.runtime.Symbol object 's' with the
                information in the object info that is being typecasted
-               as a Symbol object. */
-            Symbol s = ((Symbol) info);
+               as a java_cup.runtime.Symbol object. */
+            java_cup.runtime.Symbol s = ((java_cup.runtime.Symbol) info);
 
             /* Check if the line number in the input is greater or
                equal to zero. */
-            if (s.pos >= 0) {
+            if (s.left >= 0) {
                 /* Add to the end of the StringBuffer error message
                    the line number of the error in the input. */
-                //m.append(" in line "+(s.right+1));// Todo add line number
+                m.append(" in line "+(s.left+1));
                 /* Check if the column number in the input is greater
                    or equal to zero. */
+                if (s.right >= 0)
                     /* Add to the end of the StringBuffer error message
                        the column number of the error in the input. */
-                    m.append(", column "+(s.pos+1));
-                    m.append(s.sym);
+                    m.append(", column "+(s.right+1));
             }
         }
 
@@ -121,17 +121,23 @@ dec         ::= var_dec:v
 //(4) <var-declaration> -> <type-specifier> ID ; | <type-specifier> ID [ NUM ] ;
 var_dec      ::= INT:t var_dec_typ:v
                  {: v.type = new NameTy(tleft, NameTy.INT);
-                    v.pos = tleft;
                    RESULT = v; :}
                  | BOOL:t var_dec_typ:v
                  {: v.type = new NameTy(tleft, NameTy.BOOL);
-                    v.pos = tleft;
+                   RESULT = v; :}
+                 | VOID:t var_dec_typ:v
+                 {: v.type = new NameTy(tleft, NameTy.VOID);
+                   parser.report_error("row " + (vleft + 1) + ": Invalid Variable Decalartion: Type cannot be void", null);
                    RESULT = v; :}
                  ;
 var_dec_typ  ::= ID:i SEMI
                  {: RESULT = new SimpleDec(0, null, i); :}
                | ID:i LBRACK NUM:n RBRACK SEMI
                  {: RESULT = new ArrayDec(0, null, i, Integer.parseInt(n)); :}
+                 | error:e SEMI
+                 {:
+                   parser.report_error("row " + (eleft + 1) + ": Invalid Variable Decalartion", null);
+                 :}
                ;
 //(5) <type-specifier> -> bool | int | void
 
@@ -145,10 +151,17 @@ fun_dec       ::= INT:i1 fun_dec_typ:f
                | VOID:i1 fun_dec_typ:f
                  {:  f.result = new NameTy(i1left, NameTy.VOID);
                     RESULT = f; :}
+                 | error:e LPAREN params:p RPAREN compound_stmt:c
+                 {: parser.report_error("row " + (eleft + 1) + ": Invalid Function Declaration", e); :}
                ;
 fun_dec_typ   ::= ID:i LPAREN params:p RPAREN compound_stmt:c
-                 {: ;
-                    RESULT = new FunctionDec(ileft, null, i, p, c); :}
+                 {: RESULT = new FunctionDec(ileft, null, i, p, c); :}
+                  | error:e LPAREN params:p RPAREN compound_stmt:c
+                  {: parser.report_error("row " + (eleft + 1) + ": Invalid Function Declaration", e); :}
+                  | ID:i LPAREN error:e RPAREN compound_stmt:c
+                  {: parser.report_error("row " + (eleft + 1) + ": Invalid Function Declaration", e); :}
+                  | ID:i LPAREN params:p RPAREN error:e
+                  {: parser.report_error("row " + (eleft + 1) + ": Invalid Function Declaration", e); :}
                ;
 
 fun_pro       ::= INT:i fun_pro_typ:f
@@ -254,6 +267,8 @@ stmt         ::=  exp_stmt:e
                  {: RESULT = s; :}
                | return_stmt:r
                  {: RESULT = r; :}
+               | error:e
+                 {: parser.report_error("row " + (eleft + 1) + ": invalid statement", null); :}
                ;
 
 //(15) <expression-stmt> -> <expression> ; | ;
@@ -287,9 +302,6 @@ exp           ::= var:v1 EQ exp:e2
                  {: RESULT =  new AssignExp(v1left, v1, e2); :}
                | obool_exp: e
                  {: RESULT = e; :}
-               | error:e
-                 {: parser.report_error("row " + eleft + "invalid expression", null);
-                    RESULT = new NilExp(0); :}
               ;
 
 //(20) <var> -> ID | ID [ <expression> ]
@@ -379,12 +391,20 @@ factor       ::= LPAREN exp:e RPAREN
                  {: RESULT = new BoolExp(tleft, t); :}
                | call:c
                  {: RESULT = c; :}
+               | error RPAREN:e
+                 {: parser.report_error("row " + (eleft + 1) + ": unmatched right parenthese in factor", null);
+                    RESULT = new NilExp(0);
+                 :}
+               | error LPAREN:e
+                 {: parser.report_error("row " + (eleft + 1) + ": unmatched left parenthese in factor", null);
+                    RESULT = new NilExp(0);
+                 :}
                ;
 
 //(32) <call> -> ID ( <args> )
 call         ::= ID:i1 LPAREN args:a2 RPAREN
                  {: RESULT = new CallExp(i1left, i1, a2); :}
-                ;
+                 ;
 
 //(33) <args> -> <arg-list> |
 args         ::= arg_list:a
@@ -392,7 +412,7 @@ args         ::= arg_list:a
                 | /*empty*/
                  {: RESULT = new ExpList(new NilExp(0), null); :}
                 | arg_list:a COMMA
-                 {: parser.report_error(a.pos + "inval1231id", null);
+                 {: parser.report_error("row " + (aleft + 1) + ": unmatched comment in argument list", null);
                     RESULT = a;
                  :}
                 ;
@@ -407,8 +427,4 @@ arg_list     ::= arg_list:a1 COMMA exp:e2
                  :}
                | exp:e
                  {: RESULT = new ExpList(e, null); :}
-               | error COMMA exp:e
-                 {: parser.report_error(eleft + "inval1231id", null);
-                    RESULT = new ExpList(e, null);
-                 :}
                ;

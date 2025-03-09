@@ -9,7 +9,7 @@
    
 /* --------------------------Usercode Section------------------------ */
    
-import absyn.Symbol;
+import java_cup.runtime.*;
       
 %%
    
@@ -20,14 +20,14 @@ import absyn.Symbol;
    Will write the code to the file Lexer.java. 
 */
 %class Lexer
-%type absyn.Symbol
 
 /*
   The current line number can be accessed with the variable yyline
   and the current column number with the variable yycolumn.
 */
 %line
-    
+%column
+
 /* 
    Will switch to a CUP compatibility mode to interface with a CUP
    generated parser.
@@ -44,17 +44,17 @@ import absyn.Symbol;
 */
 %{
     /* To create a new java_cup.runtime.Symbol with information about
-               the current token, the token will have no value in this
-               case. */
-            private Symbol symbol(int type) {
-                return new Symbol(type, yyline);
-            }
+       the current token, the token will have no value in this
+       case. */
+    private Symbol symbol(int type) {
+        return new Symbol(type, yyline, yycolumn);
+    }
 
-            /* Also creates a new java_cup.runtime.Symbol with information
-               about the current token, but this object has a value. */
-            private Symbol symbol(int type, Object value) {
-                return new Symbol(type, yyline, value);
-            }
+    /* Also creates a new java_cup.runtime.Symbol with information
+       about the current token, but this object has a value. */
+    private Symbol symbol(int type, Object value) {
+        return new Symbol(type, yyline, yycolumn, value);
+    }
 %}
    
 

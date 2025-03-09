@@ -1,6 +1,6 @@
 import java.io.InputStreamReader;
 
-import absyn.Symbol;
+import java_cup.runtime.*;
 
 public class Scanner {
   private Lexer scanner = null;

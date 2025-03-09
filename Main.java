@@ -13,6 +13,7 @@
    
 import java.io.*;
 import absyn.*;
+import java_cup.runtime.*;
    
 class Main {
   public final static boolean SHOW_TREE = true;

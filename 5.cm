@@ -25,5 +25,4 @@ int main(void) {
     g(x);
     output(x);
     output(y);
-    x = (2g3);
 }
