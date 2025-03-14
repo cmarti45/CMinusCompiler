@@ -3,7 +3,6 @@
 int x;
 int y;
 
-void g(int n); /* prototype for a function */
 
 void f(int n) {
     g(n);
@@ -26,3 +25,4 @@ int main(void) {
     output(x);
     output(y);
 }
+void g(int n); /* prototype for a function */

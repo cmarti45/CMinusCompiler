@@ -7,10 +7,10 @@ public class NameTy extends Absyn {
     public int type;
     public NameTy( int pos, int type){
         this.pos = pos;
-        this.pos = pos;
         this.type = type;
     }
 
+    @Override
     public String toString(){
         return switch (this.type) {
             case VOID -> "VOID";

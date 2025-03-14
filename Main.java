@@ -16,7 +16,7 @@ import absyn.*;
 import java_cup.runtime.*;
    
 class Main {
-  public final static boolean SHOW_TREE = true;
+  public final static boolean SHOW_TREE = false;
   static public void main(String argv[]) {    
     /* Start the parser */
     try {

@@ -1,6 +1,6 @@
 /* ----------------------Preliminary Declarations Section--------------------*/
 
-import absyn.*;
+import absyn.*;import symb.SymbolTable;
 
 /* Parser code to change the way the parser reports errors (include
    line and column number of the error). */
@@ -93,7 +93,8 @@ program1     ::= exp:e
 
 //(1) <program> -> <declaration-list>
 program	     ::= dec_list:s
-                 {: RESULT = s; :}
+                 {: new SymbolTable().showTable(s, 0);
+                    RESULT = s; :}
                ;
 
 //(2) <declaration-list> -> <declaration-list> <declaration> | <declaration>
@@ -254,7 +255,7 @@ stmt_seq     ::= stmt_seq:s1 stmt:s2
                     RESULT = s1;
                  :}
                | /*empty*/
-                 {: RESULT = new ExpList(null, null); :}
+                 {: RESULT = new ExpList(new NilExp(0), null); :}
                ;
 //(14) <statement> -> <expression-stmt> | <compound-stmt> | <selection-stmt> | <iteration-stmt> | <return-stmt>
 stmt         ::=  exp_stmt:e
