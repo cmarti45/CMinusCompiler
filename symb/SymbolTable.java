@@ -125,7 +125,7 @@ public class SymbolTable {
             return;
         if (tree.body == null)
             return;
-        printIndentTemp("Entering the scope for function " + tree.func + ":" + level);
+        printIndentTemp("Entering the scope for function " + tree.func);
         newScope();
         showTable(tree.body, level);
         closeScope();
