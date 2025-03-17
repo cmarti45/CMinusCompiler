@@ -1,15 +1,13 @@
 package symb;
 
 import absyn.*;
-import org.w3c.dom.Node;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Stack;
 
 public class SymbolTable {
+    public static boolean DISPLAY = true;
     HashMap<String, ArrayList<NodeType>> table;
     private Stack<ArrayList<String>> localDec;
     private ArrayList<String> tableStack = new ArrayList<>();
@@ -19,6 +17,7 @@ public class SymbolTable {
         //System.out.println(s);
     }
     private void printIndentTemp(String s ) {
+        if (!DISPLAY) return;
         for( int i = 0; i < scope * SPACES; i++ ) System.out.print( " " );
         System.out.println(s);
     }
@@ -68,6 +67,7 @@ public class SymbolTable {
                 return false;
             }
         } else if (collision != null){
+            System.out.println(n.level + " " + collision.level);
             System.out.println("COLLISSION ERROR, DUPLICATE DECLARATION: " + n.def); //TODO: throw error
             localDec.peek().remove(s);
             return false;
@@ -83,6 +83,14 @@ public class SymbolTable {
             return null;
         }
         return nodeList.removeLast();
+    }
+
+    private NodeType peek(String s){
+        ArrayList<NodeType> nodeList = table.get(s);
+        if (nodeList == null){
+            return null;
+        }
+        return nodeList.getLast();
     }
 
     private void delete(String s){
@@ -139,6 +147,16 @@ public class SymbolTable {
             showTable((WhileExp) tree, level);
         } else if (tree instanceof IfExp){
             showTable((IfExp) tree, level);
+        } else if (tree instanceof IntExp){
+            showTable((IntExp) tree, level);
+        } else if (tree instanceof BoolExp){
+            showTable((BoolExp) tree, level);
+        } else if (tree instanceof OpExp){
+            showTable((OpExp) tree, level);
+        } else if (tree instanceof AssignExp){
+            showTable((AssignExp) tree, level);
+        } else if (tree instanceof CallExp){
+            showTable((CallExp) tree, level);
         }
     }
 
@@ -154,14 +172,18 @@ public class SymbolTable {
         printIndentTemp("Entering a new block: ");
         newScope();
         showTable(tree.thenpart, level);
+        closeScope();
+        printIndentTemp("Leaving the block");
+        printIndentTemp("Entering a new block: ");
+        newScope();
         showTable(tree.elsepart, level);
         closeScope();
         printIndentTemp("Leaving the block");
     }
 
     public void showTable(CompoundExp tree, int level){
-        showTable(tree.exps, level);
         showTable(tree.vars, level);
+        showTable(tree.exps, level);
     }
 
     public void showTable(VarDecList tree, int level){
@@ -197,4 +219,98 @@ public class SymbolTable {
             tree = tree.tail;
         }
     }
+
+    public void showTable(IntExp tree, int level){
+        tree.dtype = new SimpleDec(tree.pos, new NameTy(tree.pos, NameTy.INT), "");
+    }
+
+    public void showTable(BoolExp tree, int level){
+        tree.dtype = new SimpleDec(tree.pos, new NameTy(tree.pos, NameTy.BOOL), "");
+    }
+
+    public void showTable(OpExp tree, int level){
+        showTable(tree.left, level);
+        showTable(tree.right, level);
+        int type = tree.type();
+        if (type == -1){
+            System.err.println("Error: Invalid Operator: " + tree.pos);
+        }
+        tree.dtype = new SimpleDec(tree.pos, new NameTy(tree.pos, type), "");
+        if (!tree.left.dtype.type.equals(tree.right.dtype.type)){
+            System.err.println("Error: Invalid Operator: " + tree.pos);
+        }
+    }
+
+    public void showTable(AssignExp tree, int level){
+        if (tree.rhs instanceof VarExp){
+            NodeType n1 = peek(tree.lhs.var.name);
+            tree.rhs.dtype = SimpleDec.type(tree, n1.def.type);
+        } else {
+            showTable(tree.rhs, level);
+        }
+        NodeType n2 = peek(tree.lhs.var.name);
+        tree.lhs.dtype = SimpleDec.type(tree, n2.def.type);
+        tree.dtype = SimpleDec.type(tree, tree.lhs.dtype.type);
+
+        if (!tree.lhs.dtype.type.equals(tree.rhs.dtype.type)){
+            tree.dtype = SimpleDec.tError(tree);
+            mismatchedTypeError(tree.lhs, tree.rhs, tree.pos);
+        } else {
+            tree.dtype = SimpleDec.type(tree, tree.lhs.dtype.type);
+        }
+
+    }
+
+    public void mismatchedTypeError(VarExp d1, Exp d2, int pos){
+        System.err.println("Error: Type mismatch at " + pos + " "
+                + d1.var.name + ":" + d1.dtype.type.toString().toLowerCase() + " "
+                + d2.dtype.type);
+    }
+
+    public void showTable(CallExp tree, int level){
+        ArrayList<String> params = new ArrayList<>();
+        System.out.println(tree.args.head.getClass());
+        System.out.println(tree.id);
+        FunctionDec n1 = (FunctionDec) (peek(tree.id).def);
+        ExpList list = tree.args;
+        if (list.head instanceof NilExp){
+            if (n1.paramList.isEmpty()){
+                tree.dtype = SimpleDec.type(tree, n1.type);
+            } else {
+                tree.dtype = SimpleDec.tError(tree);
+                mismatchedArgsError(n1, tree.args, params, tree);
+            }
+            return;
+        }
+        while (list!=null&&list.head != null) {
+            if (!(list.head instanceof VarExp)) {
+                showTable(list.head, level);
+                params.add(list.head.dtype.type.toString().toLowerCase());
+            } else {
+                NodeType nt = peek(((VarExp)list.head).var.name);
+                list.head.dtype = SimpleDec.type(tree, nt.def.type);
+                params.add(nt.def.type.toString().toLowerCase());
+            }
+            if (list.head instanceof VarExp) {
+                System.out.println(((VarExp)list.head).var.name + " " + list.head.dtype.type);
+            } else {
+                System.out.println(list.head.dtype.type);
+            }
+            list = list.tail;
+        }
+
+        if (params.equals(n1.paramList)){
+            tree.dtype = SimpleDec.type(tree, n1.type);
+        } else {
+            tree.dtype = SimpleDec.tError(tree);
+            mismatchedArgsError(n1, tree.args, params, tree);
+        }
+    }
+
+
+    public void mismatchedArgsError(FunctionDec f, ExpList e, ArrayList<String> a2, Exp exp){
+        System.err.println("Error: Function expected " + f.paramList + " "
+                + "but argument is of type \'" + a2 + "\'");
+    }
+
 }

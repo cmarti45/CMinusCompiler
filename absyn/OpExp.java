@@ -28,6 +28,16 @@ public class OpExp extends Exp {
     this.right = right;
   }
 
+  public int type(){
+    if (this.op >= PLUS && this.op <= OVER){
+      return NameTy.INT;
+    } else if (this.op >= EQ && this.op <= OR){
+      return NameTy.BOOL;
+    } else {
+      return NameTy.ERROR;
+    }
+  }
+
   public void accept( AbsynVisitor visitor, int level ) {
     visitor.visit( this, level );
   }

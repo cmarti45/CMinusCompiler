@@ -144,13 +144,13 @@ var_dec_typ  ::= ID:i SEMI
 
 //(6) <fun-declaration> -> <type-specifier> ID ( <params> ) <compound-stmt>
 fun_dec       ::= INT:i1 fun_dec_typ:f
-                 {:  f.result = new NameTy(i1left, NameTy.INT);
+                 {:  f.type = new NameTy(i1left, NameTy.INT);
                     RESULT = f; :}
                | BOOL:i1 fun_dec_typ:f
-                 {:  f.result = new NameTy(i1left, NameTy.BOOL);
+                 {:  f.type = new NameTy(i1left, NameTy.BOOL);
                     RESULT = f; :}
                | VOID:i1 fun_dec_typ:f
-                 {:  f.result = new NameTy(i1left, NameTy.VOID);
+                 {:  f.type = new NameTy(i1left, NameTy.VOID);
                     RESULT = f; :}
                  | error:e LPAREN params:p RPAREN compound_stmt:c
                  {: parser.report_error("row " + (eleft + 1) + ": Invalid Function Declaration", e); :}
@@ -166,13 +166,13 @@ fun_dec_typ   ::= ID:i LPAREN params:p RPAREN compound_stmt:c
                ;
 
 fun_pro       ::= INT:i fun_pro_typ:f
-                {: f.result = new NameTy(ileft, NameTy.INT);
+                {: f.type = new NameTy(ileft, NameTy.INT);
                    RESULT = f; :}
                 | BOOL:i fun_pro_typ:f
-               {: f.result = new NameTy(ileft, NameTy.BOOL);
+               {: f.type = new NameTy(ileft, NameTy.BOOL);
                   RESULT = f; :}
                 | VOID:i fun_pro_typ:f
-               {: f.result = new NameTy(ileft, NameTy.VOID);
+               {: f.type = new NameTy(ileft, NameTy.VOID);
                   RESULT = f; :}
                  ;
 

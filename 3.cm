@@ -1,24 +1,25 @@
 /* A program to perform Euclid’s algorithm to
 compute the greatest common divisor */
 
-int gcd(int v) {
+int gcd(int z, int zz) {
     if (v == 0) return u;
     else {
         int zz;
-       return gcd(v, u - u/v*v);
+        return gcd(v, u - u/v*v);
     }
     /* note that u – u/v*v = u mod v */
 }
-
+int x;
 void main(void) {
     int x;
     int y;
-    if (x == 2){
+    bool zbs;
+    bool b;
+    b = true;
+    if (x <= 2){
         int x[20];
-
     } else {
-        bool zbs;
+        zbs = b;
     }
-    x = input(); y = input();
-    output(gcd(x, y));
+    b = gcd(1 + 3, x);
 }

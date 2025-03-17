@@ -1,16 +1,28 @@
 package absyn;
 
+import java.util.ArrayList;
+
 public class FunctionDec extends Dec {
-    public NameTy result;
     public String func;
     public VarDecList params;
     public Exp body;
+    public ArrayList<String> paramList;
     public FunctionDec( int pos, NameTy result, String func, VarDecList params, Exp body){
         this.pos = pos;
-        this.result = result;
+        this.type = result;
         this.func = func;
         this.body = body;
         this.params = params;
+        paramList = new ArrayList<>();
+        VarDecList p = this.params;
+        while (p!=null&&p.head!=null) {
+            if (p.head instanceof ArrayDec) {
+                paramList.add(p.head.type.toString().toLowerCase() + "*");
+            } else {
+                paramList.add(p.head.type.toString().toLowerCase());
+            }
+            p = p.tail;
+        }
     }
 
     public void accept( AbsynVisitor visitor, int level ) {
@@ -19,22 +31,9 @@ public class FunctionDec extends Dec {
 
     @Override
     public String toString(){
-        String s = "Function: " + this.result.toString().toLowerCase() + " " + this.func;
-        if (this.params.head == null){
-            return s;
-        }
-        VarDecList p = this.params;
-        StringBuilder params = new StringBuilder(p.head.type.toString());
-        if (p.head instanceof ArrayDec){
-            params.append(" *");
-        }
-        while (p.tail != null){
-            p = p.tail;
-            params.append(", ").append(p.head.type);
-            if (p.head instanceof ArrayDec){
-                params.append(" *");
-            }
-        }
-        return func + ": (" + params.toString().toLowerCase() + ") -> " + result.toString().toLowerCase();
+        if (paramList.size() >= 1)
+            return func + ": (" + paramList.toString() + ") -> " + type.toString().toLowerCase();
+        else
+            return func + ": (void) -> " + type.toString().toLowerCase();
     }
 }

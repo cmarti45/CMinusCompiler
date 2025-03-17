@@ -197,13 +197,13 @@ public class ShowTreeVisitor implements AbsynVisitor {
   public void visit(FunctionDec dec, int level){
     if (dec.body == null){
       indent(level);
-      System.out.println( "FunctionPro: " + dec.result + " " + dec.func);
+      System.out.println( "FunctionPro: " + dec.type + " " + dec.func);
       indent(level);
       dec.params.accept(this, level);
       return;
     }
     indent(level);
-    System.out.println( "FunctionDec: " + dec.result + " " + dec.func);
+    System.out.println( "FunctionDec: " + dec.type + " " + dec.func);
     level++;
     indent(level);
     System.out.println("Params:");
