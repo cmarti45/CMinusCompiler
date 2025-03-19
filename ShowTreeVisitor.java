@@ -61,7 +61,7 @@ public class ShowTreeVisitor implements AbsynVisitor {
 
   public void visit( ArrayDec dec, int level ) {
     indent( level );
-    System.out.println( "Declare Var: " + dec.type.toString() + " " + dec.name + "[] ");
+    System.out.println( "Declare Var: " + dec.type.toString() + " " + dec.name + "[" + dec.size + "]");
   }
 
   public void visit(ArgsExp exp, int level ) {

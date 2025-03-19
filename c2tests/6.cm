@@ -1,0 +1,13 @@
+int x;
+bool bbb[10];
+void foo(void){}
+void foo(void){}
+void main(void){
+    int y[10];
+    int y;
+    z = 2;
+    if (true){
+        y[true] = 2;
+    }
+
+}

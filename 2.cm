@@ -1,15 +1,5 @@
-/* A factorial program that uses a Boolean variable */
-void main(void) {
+void main(void){
     int x;
-    int fac;
-    bool test;
-    x = input();
-    fac = 1;
-    test = x > 1;
-    while (test) {
-        fac = fac * x;
-        x = x - 1;
-        test = x > 1;
-    }
-    output(fac);
+    bool y; bool z;
+    z = (x = y + 3);
 }

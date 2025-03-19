@@ -93,7 +93,7 @@ program1     ::= exp:e
 
 //(1) <program> -> <declaration-list>
 program	     ::= dec_list:s
-                 {: new SymbolTable().showTable(s, 0);
+                 {: new SymbolTable().showTable(s);
                     RESULT = s; :}
                ;
 
@@ -113,9 +113,9 @@ dec_list    ::= dec_list:d1 dec:d2
 //(3) <declaration> -> <var-declaration> | <fun-declaration> | <fun-prototype>
 dec         ::= var_dec:v
                  {: RESULT = v; :}
-               | fun_dec:f1
-                 {: RESULT = f1; :}
                | fun_pro:f1
+                 {: RESULT = f1; :}
+               | fun_dec:f1
                  {: RESULT = f1; :}
             ;
 
@@ -284,6 +284,12 @@ select_stmt ::= IF:i LPAREN exp:e RPAREN stmt:s1 ELSE stmt:s2
                  {: RESULT = new IfExp(ileft, e, s1, s2); :}
                 | IF:i LPAREN exp:e RPAREN stmt:s
                  {: RESULT = new IfExp(ileft, e, s, new NilExp(0)); :}
+                | IF:i LPAREN RPAREN stmt:s
+                 {: parser.report_error("row " + (ileft + 1) + ": empty test in if stmt", null);
+                    RESULT = new IfExp(ileft, new NilExp(0), s, new NilExp(0)); :}
+                | IF:i LPAREN RPAREN stmt:s1 ELSE stmt:s2
+                 {: parser.report_error("row " + (ileft + 1) + ": empty test in if stmt", null);
+                    RESULT = new IfExp(ileft, new NilExp(0), s1, s2); :}
                ;
 
 //(17) <iteration-stmt> -> while ( <expression> ) <statement>

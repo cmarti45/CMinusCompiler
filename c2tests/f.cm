@@ -1,0 +1,15 @@
+int i; int j;
+int f( int size) {
+    bool i; int temp;
+
+    while (j > 0 && i){
+        bool j;
+        while (j && i){
+            int i;
+            while (i > 10 && j){
+                int j[19];
+                j[1] = 3;
+            }
+        }
+    }
+}
