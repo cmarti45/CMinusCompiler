@@ -353,7 +353,12 @@ public class SymbolTable {
             }
         }
         NodeType n1 = peek(tree.var.name);
-        tree.dtype = SimpleDec.type(tree, n1.def.type);
+        if (n1 == null) {
+            undeclaredVarError(tree.var.name, tree, tree.pos);
+            tree.dtype = SimpleDec.tError(tree);
+        }else {
+            tree.dtype = SimpleDec.type(tree, n1.def.type);
+        }
     }
 
     public void showTable(AssignExp tree){
