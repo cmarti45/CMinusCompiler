@@ -8,6 +8,7 @@ import java.util.Queue;
 import java.util.concurrent.*;
 
 public class SymbolTable {
+    private FunctionDec PARENTFUNCTION;
     private final Queue<Runnable> methodQueue = new LinkedList<>();
     private HashMap<Integer,String> errors;
     public static boolean VERBOSE = false;
@@ -22,8 +23,6 @@ public class SymbolTable {
         //System.out.println(s);
     }
     private void printTable(){
-        if (!VERBOSE)
-            return;
         for (String key: table.keySet()){
             System.out.printf("%-15s:", key);
             for (NodeType s: table.get(key)){
@@ -39,7 +38,7 @@ public class SymbolTable {
     }
     private int scope;
     private void newScope(){
-        printTable();
+        if (VERBOSE)printTable();
         localDec.push(new ArrayList<>());
         scope++;
     }
@@ -202,6 +201,7 @@ public class SymbolTable {
                 v = v.tail;
             }
         }
+        PARENTFUNCTION = tree;
         showTable((CompoundExp) tree.body);
         closeScope();
         printIndentTemp("Exiting the function scope");
@@ -272,6 +272,9 @@ public class SymbolTable {
     public void showTable(ReturnExp tree){
         showTable(tree.exp);
         tree.dtype = tree.exp.dtype;
+        if (!tree.dtype.type.equals(PARENTFUNCTION.type)){
+            invalidReturnTypeError(PARENTFUNCTION, tree);
+        }
     }
 
     public void showTable(VarDecList tree){
@@ -351,6 +354,11 @@ public class SymbolTable {
         showTable(tree.rhs);
         if (tree.rhs instanceof VarExp){
             NodeType n1 = peek(((VarExp) tree.rhs).var.name);
+            if (n1 == null) {
+                undeclaredVarError(((VarExp) tree.rhs).var.name, tree, tree.pos);
+                tree.dtype = SimpleDec.tError(tree);
+                return;
+            }
             tree.rhs.dtype = SimpleDec.type(tree, n1.def.type);
         }
         NodeType n2 = peek(tree.lhs.var.name);

@@ -21,7 +21,6 @@ void g(int m) {
     m = m  - 1;
     if (m > 0) {
         f(m);
-        y = y  - 1;
         g(m);
     }
     return x;
