@@ -1,5 +1,0 @@
-void main(void){
-    int x;
-    bool y; bool z;
-    z = (x = y + 3);
-}

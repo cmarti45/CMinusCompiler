@@ -389,7 +389,14 @@ public class SymbolTable {
 
     public void showTable(CallExp tree){
         ArrayList<String> params = new ArrayList<>();
-        FunctionDec n1 = (FunctionDec) (peek(tree.id).def);
+
+        NodeType n = (peek(tree.id));
+        if (n == null){
+            undeclaredFuncError(tree.id, tree);
+            tree.dtype = SimpleDec.tError(tree);
+            return;
+        }
+        FunctionDec n1 = (FunctionDec) n.def;
         ExpList list = tree.args;
         if (list.head instanceof NilExp){
             if (n1.paramList.isEmpty()){
@@ -406,6 +413,12 @@ public class SymbolTable {
                 params.add(list.head.dtype.type.toString().toLowerCase());
             } else {
                 NodeType nt = peek(((VarExp)list.head).var.name);
+                if (nt == null){
+                    undeclaredVarError(((VarExp)list.head).var.name, list.head, list.head.pos);
+                    tree.dtype = SimpleDec.tError(tree);
+                    mismatchedArgsError(n1, tree.args, params, tree);
+                    return;
+                }
                 if (nt.def instanceof ArrayDec){
                     list.head.dtype = ArrayDec.type(tree, nt.def.type, ((ArrayDec)nt.def).size);
                     if (((VarExp) list.head).var instanceof IndexVar){
@@ -456,6 +469,10 @@ public class SymbolTable {
 
     public void undeclaredVarError(String name, Exp d2, int pos){
         printError(pos, "Var '" + name + "' is not declared in this scope");
+    }
+
+    public void undeclaredFuncError(String name, Exp tree){
+        printError(tree.pos, "Func '" + name + "' is not declared in this scope");
     }
 
     public void mismatchedTypeError(VarExp d1, Exp d2, int pos) {

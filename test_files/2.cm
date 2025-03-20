@@ -21,6 +21,5 @@ void main(void) {
   y = x[test()];
   x = input();
   y = input();
-  x = gcd(1,2);
   output(gcd(x, y));
 }

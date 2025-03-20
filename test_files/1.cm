@@ -1,7 +1,17 @@
+void v(void){
 
+}
 void main(void) {
   int x;
+  bool a;
   int y[5];
   x = 4;
+  x = a;
+  if (v()){
+
+  }
+  while (v()){
+
+  }
   output(x);
 }

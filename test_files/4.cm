@@ -3,6 +3,7 @@
 
 int x[10];
 int i;
+int i;
 
 int minloc(int a[], int low, int high) {
     int i;
@@ -25,6 +26,9 @@ int minloc(int a[], int low, int high) {
     return k;
     return xyz;
 }
+
+int minloc(int a[], int low, int high);
+int minloc(int a[], int low, int high);
 void sort(int a[], int low, int high) {
     int i;
     int k;

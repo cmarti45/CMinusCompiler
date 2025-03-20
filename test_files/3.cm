@@ -7,6 +7,7 @@ int gcd(int z, int zz) {
         int zz;
         return gcd(v, u - u/v*v);
     }
+    undec();
     /* note that u – u/v*v = u mod v */
 }
 int x;
