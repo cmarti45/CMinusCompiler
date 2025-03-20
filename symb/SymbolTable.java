@@ -408,7 +408,11 @@ public class SymbolTable {
                 NodeType nt = peek(((VarExp)list.head).var.name);
                 if (nt.def instanceof ArrayDec){
                     list.head.dtype = ArrayDec.type(tree, nt.def.type, ((ArrayDec)nt.def).size);
-                    params.add(nt.def.type.toString().toLowerCase() + "*");
+                    if (((VarExp) list.head).var instanceof IndexVar){
+                        params.add(nt.def.type.toString().toLowerCase());
+                    } else {
+                        params.add(nt.def.type.toString().toLowerCase() + "*");
+                    }
                 } else {
                     list.head.dtype = SimpleDec.type(tree, nt.def.type);
                     params.add(nt.def.type.toString().toLowerCase());
@@ -434,7 +438,7 @@ public class SymbolTable {
     }
 
     private void mismatchedArgsError(FunctionDec f, ExpList e, ArrayList<String> a2, Exp exp){
-        printError(f.pos, "Function expected '" + f.paramList + "' "
+        printError(exp.pos, "Function expected '" + f.paramList + "' "
                 + "but argument is of type '" + a2 + "'");
     }
 
