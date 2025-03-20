@@ -70,8 +70,8 @@ public class SymbolTable {
             nodelist = new ArrayList<>();
         }
         if (!nodelist.isEmpty()){
-            if (nodelist.getLast().name.equals(s)){
-                collision = nodelist.getLast();
+            if (nodelist.get(nodelist.size()-1).name.equals(s)){
+                collision = nodelist.get(nodelist.size()-1);
             }
         }
         if (collision != null&&n.def instanceof FunctionDec){
@@ -98,7 +98,7 @@ public class SymbolTable {
         if (nodeList == null){
             return null;
         }
-        return nodeList.removeLast();
+        return nodeList.remove(nodeList.size()-1);
     }
 
     private NodeType peek(String s){
@@ -107,7 +107,7 @@ public class SymbolTable {
             return null;
         }
         try {
-            return nodeList.getLast();
+            return nodeList.get(nodeList.size()-1);
         } catch (Exception e){
             System.out.println(s);
             System.out.println(table);
@@ -115,13 +115,6 @@ public class SymbolTable {
         }
     }
 
-    private void delete(String s){
-        ArrayList<NodeType> nodeList = table.get(s);
-        nodeList.removeLast();
-        if (nodeList.isEmpty()){
-            table.remove(s);
-        }
-    }
     public SymbolTable(){
         this.errors = new HashMap<>();
         this.valid = true;
