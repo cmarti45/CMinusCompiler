@@ -202,16 +202,7 @@ public class SymbolTable {
                 v = v.tail;
             }
         }
-        ExpList exps = ((CompoundExp) tree.body).exps;
-        while (exps != null){
-            if (exps.head instanceof ReturnExp){
-                showTable((ReturnExp) exps.head);
-                if (!tree.type.equals(exps.head.dtype.type)){
-                    invalidReturnTypeError(tree, (ReturnExp) exps.head);
-                }
-            }
-            exps = exps.tail;
-        }
+        showTable((CompoundExp) tree.body);
         closeScope();
         printIndentTemp("Exiting the function scope");
     }
@@ -264,11 +255,13 @@ public class SymbolTable {
          showTable(tree.thenpart);
         closeScope();
         printIndentTemp("Leaving the block");
-        printIndentTemp("Entering a new block: ");
-        newScope();
-         showTable(tree.elsepart);
-        closeScope();
-        printIndentTemp("Leaving the block");
+        if (!(tree.elsepart instanceof NilExp)){
+            printIndentTemp("Entering a new block: ");
+            newScope();
+            showTable(tree.elsepart);
+            closeScope();
+            printIndentTemp("Leaving the block");
+        }
     }
 
     public void showTable(CompoundExp tree){

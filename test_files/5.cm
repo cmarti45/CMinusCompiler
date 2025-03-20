@@ -1,0 +1,40 @@
+/* A program that contain mutual recursions */
+
+int x;
+int y;
+
+
+void f(int n) {
+    g(n);
+    y = y  - 1;
+}
+
+void g(int m) {
+    int x;
+    if (){
+        int x;
+        x = 1;
+    }
+    while (true){
+        int x;
+    };
+    m = m  - 1;
+    if (m > 0) {
+        f(m);
+        y = y  - 1;
+        g(m);
+    }
+    return x;
+    x = a;
+    return true;
+    return;
+
+}
+
+int main(void) {
+    int z;
+    return x;
+    g(x);
+    return;
+}
+void g(int n); /* prototype for a function */

@@ -93,7 +93,7 @@ program1     ::= exp:e
 
 //(1) <program> -> <declaration-list>
 program	     ::= dec_list:s
-                 {: new SymbolTable().showTable(s);
+                 {: //new SymbolTable().showTable(s);
                     RESULT = s; :}
                ;
 

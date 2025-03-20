@@ -41,6 +41,9 @@ class Main {
                 lexer.yyreset(new FileReader(argv[0]));
                 parser p = new parser(lexer);
                 Absyn result = (Absyn) (p.parse().value);
+                if (argList.contains("-s")){
+                    new SymbolTable().showTable((DecList) result);
+                }
                 if (argList.contains("-a")){
                     System.out.println("The abstract syntax tree is:");
                     AbsynVisitor visitor = new ShowTreeVisitor();
