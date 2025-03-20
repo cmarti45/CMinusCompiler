@@ -19,4 +19,4 @@ parser.java: tiny.cup
 	$(CUP) -expect 3 tiny.cup
 
 clean:
-	rm -f parser.java Lexer.java sym.java *.class absyn/*.class *~
+	rm -f parser.java Lexer.java sym.java *.class absyn/*.class symb/*.class *~

@@ -93,13 +93,6 @@ public class SymbolTable {
         return true;
     }
 
-    private void duplicateVarError(NodeType n, NodeType collision) {
-        printError(collision.def.pos, "Duplicated variable '" + collision.name + "'. Already declared at line" + (n.def.pos + 1));
-    }
-
-    private void duplicateFunctionError(FunctionDec f, FunctionDec c) {
-        printError(c.pos, "Duplicated function '" + f.func + "'. Already declared at line " + (f.pos + 1 ));
-    }
 
     private NodeType lookup(String s){
         ArrayList<NodeType> nodeList = table.get(s);
@@ -431,6 +424,13 @@ public class SymbolTable {
         }
     }
 
+    private void duplicateVarError(NodeType n, NodeType collision) {
+        printError(collision.def.pos, "Duplicated variable '" + collision.name + "'. Already declared at line" + (n.def.pos + 1));
+    }
+
+    private void duplicateFunctionError(FunctionDec f, FunctionDec c) {
+        printError(c.pos, "Duplicated function '" + f.func + "'. Already declared at line " + (f.pos + 1 ));
+    }
 
     private void mismatchedArgsError(FunctionDec f, ExpList e, ArrayList<String> a2, Exp exp){
         printError(f.pos, "Function expected '" + f.paramList + "' "
