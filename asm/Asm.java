@@ -180,7 +180,6 @@ public class Asm {
         this.emitComment("allocating parameter: " + tree.name);
         if (tree instanceof ArrayDec) {
             tree.nestLevel = (this.symbolTable.getScope() > 1) ? 1 : 0;
-            System.out.println(tree);
             NodeType param = new NodeType(tree.name, tree, this.symbolTable.getScope());
             if(!this.symbolTable.insert(tree.name, param)){
 //                this.symbolTable.error("Parameter redefinition error");
@@ -354,7 +353,7 @@ public class Asm {
 //            this.symbolTable.checkType((ExpCall)tree.right);
 //        }
         genCode(tree.right);
-        this.emitCode(++this.address, Operations.LD, AC1, temp.offset, FP, "load left");
+        this.emitCode(++this.address, Operations.LD, AC1, temp.offset, FP, "load left" + tree.op);
         switch(tree.op) {
             case OpExp.PLUS:
                 this.emitCode(++this.address, Operations.ADD, AC, AC1, AC);
@@ -396,7 +395,7 @@ public class Asm {
                 this.emitCode(++this.address, Operations.LDA, PC, 1, PC, "unconditional jump");
                 this.emitCode(++this.address, Operations.LDC, AC, 1, 0, "true case");
                 break;
-            case OpExp.EQ:
+            case OpExp.EEQ:
                 this.emitCode(++this.address, Operations.SUB, AC, AC1, AC);
                 this.emitCode(++this.address, Operations.JEQ, AC, 2, PC, "br if true");
                 this.emitCode(++this.address, Operations.LDC, AC, 0, 0, "false case");

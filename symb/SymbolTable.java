@@ -61,7 +61,7 @@ public class SymbolTable {
 
     public void closeScope(){
         ArrayList<String> decs = new ArrayList<>(localDec.peek());
-        currentOffset += localDec.peek().size();
+        currentOffset += localDec.peek().size() -1;
         localDec.peek().forEach(s -> {
             NodeType n = lookup(s);
             decs.remove(s);
@@ -107,6 +107,7 @@ public class SymbolTable {
             currentOffset = 0;
         }
         if (n.def instanceof VarDec){
+            ((VarDec) n.def).nestLevel = (scope > 1) ? 1 : 0;
             if (((VarDec) n.def).nestLevel == 0){
                 ((VarDec) n.def).offset = globalOffset--;
             } else if (n.def instanceof SimpleDec) {
@@ -200,13 +201,11 @@ public class SymbolTable {
     }
 
     public void showTable(SimpleDec tree){
-        tree.nestLevel = (scope > 1) ? 1 : 0;
         insert(tree.name, new NodeType(tree.name, tree, scope));
         printIndent(tree.toString());
     }
 
     public void showTable(ArrayDec tree){
-        tree.nestLevel = (scope > 1) ? 1 : 0;
         insert(tree.name, new NodeType(tree.name, tree, scope));
         printIndent(tree.toString());
     }
