@@ -8,19 +8,31 @@ import java.util.Queue;
 import java.util.concurrent.*;
 
 public class SymbolTable {
-    private FunctionDec PARENTFUNCTION;
+    public FunctionDec getPARENTFUNCTION(){return PARENTFUNCTION;}
+    public FunctionDec PARENTFUNCTION;
     private final Queue<Runnable> methodQueue = new LinkedList<>();
     private HashMap<Integer,String> errors;
     public static boolean VERBOSE = false;
     public static boolean DISPLAY = true;
+    public boolean display = true;
     HashMap<String, ArrayList<NodeType>> table;
     private Stack<ArrayList<String>> localDec;
     private ArrayList<String> tableStack = new ArrayList<>();
     private final int SPACES = 4;
+    public int temp = 0;
     private boolean valid;
+    private int currentOffset = 0;
+    private int globalOffset = 0;
     private void printIndent(String s ) {
         //for( int i = 0; i < scope * SPACES; i++ ) System.out.print( " " );
         //System.out.println(s);
+    }
+    public int getGlobalOffset(){
+        return this.globalOffset;
+    }
+
+    public int getLocalOffset(){
+        return this.currentOffset;
     }
     private void printTable(){
         for (String key: table.keySet()){
@@ -33,19 +45,23 @@ public class SymbolTable {
     }
     private void printIndentTemp(String s ) {
         if (!DISPLAY) return;
+        if (!display) return;
         for( int i = 0; i < scope * SPACES; i++ ) System.out.print( " " );
         System.out.println(s);
     }
     private int scope;
-    private void newScope(){
+    public void newScope(){
         if (VERBOSE)printTable();
         localDec.push(new ArrayList<>());
         scope++;
     }
+    public int getScope(){
+        return scope;
+    }
 
-    private void closeScope(){
-        ArrayList<String> collision = new ArrayList<>();
+    public void closeScope(){
         ArrayList<String> decs = new ArrayList<>(localDec.peek());
+        currentOffset += localDec.peek().size();
         localDec.peek().forEach(s -> {
             NodeType n = lookup(s);
             decs.remove(s);
@@ -60,7 +76,7 @@ public class SymbolTable {
         scope--;
     }
 
-    private boolean insert(String s, NodeType n){
+    public boolean insert(String s, NodeType n){
         NodeType collision = null;
         localDec.peek().add(s);
         ArrayList<NodeType> nodelist;
@@ -78,7 +94,7 @@ public class SymbolTable {
             FunctionDec f = (FunctionDec) n.def;
             FunctionDec c = (FunctionDec) collision.def;
             if ((f.body == null) == (c.body == null)){
-                duplicateFunctionError(f,c); //TODO: throw error
+                duplicateFunctionError(f,c);
                 localDec.peek().remove(s);
                 return false;
             }
@@ -87,8 +103,25 @@ public class SymbolTable {
             localDec.peek().remove(s);
             return false;
         }
+        if (n.def instanceof FunctionDec){
+            currentOffset = 0;
+        }
+        if (n.def instanceof VarDec){
+            if (((VarDec) n.def).nestLevel == 0){
+                ((VarDec) n.def).offset = globalOffset--;
+            } else if (n.def instanceof SimpleDec) {
+                ((SimpleDec) n.def).offset = currentOffset;
+            } else if (n.def instanceof ArrayDec) {
+                this.currentOffset -= ((ArrayDec) n.def).size - 1;
+                ((ArrayDec) n.def).offset = currentOffset;
+            }
+        }
         nodelist.add(n);
         table.put(s, nodelist);
+        if (!(n.def instanceof FunctionDec)){
+            this.currentOffset--;
+        }
+        System.out.println(s + " " + currentOffset);
         return true;
     }
 
@@ -101,7 +134,7 @@ public class SymbolTable {
         return nodeList.remove(nodeList.size()-1);
     }
 
-    private NodeType peek(String s){
+    public NodeType peek(String s){
         ArrayList<NodeType> nodeList = table.get(s);
         if (nodeList == null){
             return null;
@@ -128,8 +161,8 @@ public class SymbolTable {
         newScope();
 
         //Add input and output
-        showTable(new FunctionDec(0, new NameTy(0, NameTy.INT), "input", new VarDecList(null, null), null));
-        showTable(new FunctionDec(0, new NameTy(0, NameTy.VOID), "output",
+        showTable(new FunctionDec(0, 4, new NameTy(0, NameTy.INT), "input", new VarDecList(null, null), null));
+        showTable(new FunctionDec(0, 7, new NameTy(0, NameTy.VOID), "output",
                   new VarDecList(SimpleDec.tInt(new NilExp(0)), null), null));
 
         for (int i= 0; i < 2; i++) {
@@ -167,11 +200,13 @@ public class SymbolTable {
     }
 
     public void showTable(SimpleDec tree){
+        tree.nestLevel = (scope > 1) ? 1 : 0;
         insert(tree.name, new NodeType(tree.name, tree, scope));
         printIndent(tree.toString());
     }
 
     public void showTable(ArrayDec tree){
+        tree.nestLevel = (scope > 1) ? 1 : 0;
         insert(tree.name, new NodeType(tree.name, tree, scope));
         printIndent(tree.toString());
     }
@@ -304,12 +339,30 @@ public class SymbolTable {
         }
     }
 
+    public SimpleDec newTemp(){
+        String name = "_t" + ++temp;
+        SimpleDec dec = SimpleDec.tInt(new NilExp(0));
+        dec.nestLevel = 1;
+        NodeType temp = new NodeType(name, dec, scope);
+        this.insert(name, temp);
+        return (SimpleDec) temp.def;
+    }
+
+    public ArrayDec newTempArray(NameTy type){
+        String name = "_t" + ++temp;
+        ArrayDec dec = ArrayDec.type(new NilExp(0), type, 0);
+        dec.nestLevel = 1;
+        NodeType temp = new NodeType(name, dec, scope);
+        this.insert(name, temp);
+        return (ArrayDec) temp.def;
+    }
+
     public void showTable(IntExp tree){
-        tree.dtype = new SimpleDec(tree.pos, new NameTy(tree.pos, NameTy.INT), "");
+        tree.dtype = new SimpleDec(tree.pos, 0, 0, new NameTy(tree.pos, NameTy.INT), "");
     }
 
     public void showTable(BoolExp tree){
-        tree.dtype = new SimpleDec(tree.pos, new NameTy(tree.pos, NameTy.BOOL), "");
+        tree.dtype = new SimpleDec(tree.pos, 0, 0, new NameTy(tree.pos, NameTy.BOOL), "");
     }
 
     public void showTable(OpExp tree){
@@ -319,7 +372,7 @@ public class SymbolTable {
         if (type == -1){
             System.err.println("Error: Invalid Operator: " + (tree.pos + 1));
         }
-        tree.dtype = new SimpleDec(tree.pos, new NameTy(tree.pos, type), "");
+        tree.dtype = new SimpleDec(tree.pos, 0, 0, new NameTy(tree.pos, type), "");
         if (!tree.left.dtype.type.equals(tree.right.dtype.type)){
             invalidOperatorError(tree);
         }
@@ -418,6 +471,7 @@ public class SymbolTable {
                         params.add(nt.def.type.toString().toLowerCase());
                     } else {
                         params.add(nt.def.type.toString().toLowerCase() + "*");
+
                     }
                 } else {
                     list.head.dtype = SimpleDec.type(tree, nt.def.type);
@@ -481,7 +535,7 @@ public class SymbolTable {
         printError(tree.pos, "Invalid index type used to access array '" + tree.var.name + "': " + v.index.dtype.toString());
     }
 
-    void printError(int pos, String s){
+    public void printError(int pos, String s){
         this.valid = false;
         errors.put(pos, "Error at line " + (pos + 1) + ": " + s);
     }

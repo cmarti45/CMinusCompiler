@@ -132,9 +132,9 @@ var_dec      ::= INT:t var_dec_typ:v
                    RESULT = v; :}
                  ;
 var_dec_typ  ::= ID:i SEMI
-                 {: RESULT = new SimpleDec(0, null, i); :}
+                 {: RESULT = new SimpleDec(0, 0, 0, null, i); :}
                | ID:i LBRACK NUM:n RBRACK SEMI
-                 {: RESULT = new ArrayDec(0, null, i, Integer.parseInt(n)); :}
+                 {: RESULT = new ArrayDec(0, 0, 0, null, i, Integer.parseInt(n)); :}
                  | error:e SEMI
                  {:
                    parser.report_error("row " + (eleft + 1) + ": Invalid Variable Decalartion", null);
@@ -156,7 +156,7 @@ fun_dec       ::= INT:i1 fun_dec_typ:f
                  {: parser.report_error("row " + (eleft + 1) + ": Invalid Function Declaration", e); :}
                ;
 fun_dec_typ   ::= ID:i LPAREN params:p RPAREN compound_stmt:c
-                 {: RESULT = new FunctionDec(ileft, null, i, p, c); :}
+                 {: RESULT = new FunctionDec(ileft, 0, null, i, p, c); :}
                   | error:e LPAREN params:p RPAREN compound_stmt:c
                   {: parser.report_error("row " + (eleft + 1) + ": Invalid Function Declaration", e); :}
                   | ID:i LPAREN error:e RPAREN compound_stmt:c
@@ -179,7 +179,7 @@ fun_pro       ::= INT:i fun_pro_typ:f
 //(7) <fun-prototype> -> <type-specifier> ID ( <params> ) ;
 fun_pro_typ   ::= ID:i LPAREN params:p RPAREN SEMI
                  {: ;
-                    RESULT = new FunctionDec(ileft, null, i, p, null); :}
+                    RESULT = new FunctionDec(ileft, 0, null, i, p, null); :}
                ;
 
 //(8) <params> -> <param-list> | void
@@ -216,9 +216,9 @@ param         ::= INT:i param_typ:p
                    RESULT = p; :}
                ;
 param_typ     ::= ID:i
-                 {: RESULT = new SimpleDec(0, null, i); :}
+                 {: RESULT = new SimpleDec(0, 0, 0, null, i); :}
                | ID:i LBRACK RBRACK
-                 {: RESULT = new ArrayDec(0, null, i, 0); :}
+                 {: RESULT = new ArrayDec(0, 0, 0, null, i, 0); :}
                 ;
 
 //(11) <compound-stmt> -> { <local-declarations> <statement-list> }

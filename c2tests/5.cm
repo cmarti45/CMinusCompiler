@@ -1,4 +1,5 @@
 void foo(void){}
+bool x;
 void main(void) {
     int x;
     if( x ) output(foo());

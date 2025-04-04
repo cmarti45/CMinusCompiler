@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import absyn.*;
+import asm.Asm;
 import java_cup.runtime.*;
 import symb.SymbolTable;
 
@@ -24,7 +25,8 @@ class Main {
   static public void main(String argv[]) {    
     /* Start the parser */
     try {
-      Lexer lexer = new Lexer(new FileReader(argv[0]));
+      String filename = argv[0];
+      Lexer lexer = new Lexer(new FileReader(filename));
       List<String> argList = Arrays.asList(argv);
                 if (argList.contains("-S")) {
                     Scanner scanner = new Scanner(lexer);
@@ -38,16 +40,22 @@ class Main {
                 if (!argList.contains("-s")){
                     SymbolTable.DISPLAY = false;
                 }
-                lexer.yyreset(new FileReader(argv[0]));
+                lexer.yyreset(new FileReader(filename));
                 parser p = new parser(lexer);
                 Absyn result = (Absyn) (p.parse().value);
                 if (argList.contains("-s")){
                     new SymbolTable().showTable((DecList) result);
+                } else {
+
                 }
                 if (argList.contains("-a")){
                     System.out.println("The abstract syntax tree is:");
                     AbsynVisitor visitor = new ShowTreeVisitor();
                     result.accept(visitor, 0);
+                }
+                if (argList.contains("-c")){
+                    System.out.println("Compiling to assembly...");
+                    new Asm().generateAssembly(filename, (DecList) result);
                 }
     } catch (Exception e) {
       /* do cleanup here -- possibly rethrow e */

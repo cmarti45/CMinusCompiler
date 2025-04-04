@@ -4,7 +4,7 @@ import absyn.Dec;
 
 public class NodeType {
     String name;
-    Dec def;
+    public Dec def;
     int level;
 
     public NodeType(String name, Dec def, int level){

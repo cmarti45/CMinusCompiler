@@ -1,3 +1,7 @@
+int a;
+bool b;
+int c[10];
+bool d[10];
 void v(void){
 
 }
