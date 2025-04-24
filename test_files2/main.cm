@@ -1,7 +1,0 @@
-int abc(void){
-
-}
-void main(void){
-    int i;
-    i = 1;
-}
