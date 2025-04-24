@@ -141,6 +141,19 @@ public class Asm {
     }
 
     private void genCode(FunctionDec tree) {
+        if (tree.body == null){
+            this.emitComment("Function prototype at : " + this.address);
+            this.emitCode(++this.address, Operations.LDA, PC,  1, PC, "jump around " + tree.func + " prototype");
+            tree.funaddr = ++this.address;
+            NodeType s = new NodeType(tree.func, tree, this.symbolTable.getScope());
+            this.symbolTable.insert(tree.func, s);
+            return;
+        }
+        NodeType prototype = symbolTable.peek(tree.func);
+        FunctionDec funcPro = null;
+        if (prototype != null) {
+            funcPro = (FunctionDec) prototype.def;
+        }
         this.address++;
         int jmpAround = this.address;
         tree.funaddr = ++this.address;
@@ -166,6 +179,9 @@ public class Asm {
         }
         this.emitCode(++this.address, Operations.LD, PC, -1, FP);
         this.emitCode(jmpAround, Operations.LDA, PC, this.address - jmpAround, PC, "jump around " + tree.func + " body");
+        if (funcPro != null){
+            this.emitCode(funcPro.funaddr, Operations.LDA, PC, jmpAround - funcPro.funaddr, PC, "jump to " + tree.func + " body");
+        }
         this.symbolTable.closeScope();
     }
     private void genCodeParam(VarDecList tree){

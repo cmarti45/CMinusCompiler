@@ -35,7 +35,7 @@ public class FunctionDec extends Dec {
     @Override
     public String toString(){
         if (paramList.size() == 1){
-            return func + ": (" + paramList.getFirst() + ") -> " + type.toString().toLowerCase();
+            return func + ": (" + paramList.get(0) + ") -> " + type.toString().toLowerCase();
         }
             else if (paramList.size() >1 ){
             return func + ": (" + String.join(",", paramList) + ") -> " + type.toString().toLowerCase();
